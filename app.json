@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "note-swipe",
+    "name": "Note Swipe",
     "slug": "note-swipe",
     "version": "1.0.0",
+    "jsEngine": "hermes",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "noteswipe",

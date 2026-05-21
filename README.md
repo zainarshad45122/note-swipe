@@ -7,13 +7,13 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 1. Install dependencies
 
    ```bash
-   npm install
+   yarn install
    ```
 
 2. Start the app
 
    ```bash
-   npx expo start
+   yarn start
    ```
 
 In the output, you'll find options to open the app in a
@@ -23,14 +23,38 @@ In the output, you'll find options to open the app in a
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
 - [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+
+## Android debugging (physical device)
+
+If **Open DevTools** shows `No compatible apps connected`, Metro is not seeing your phone as a debugger target. Use USB + port forwarding:
+
+1. Enable **USB debugging** on the phone and connect it to your Mac.
+2. Run:
+
+   ```bash
+   yarn android:debug
+   ```
+
+3. Open the project in **Expo Go 56** when prompted (must match SDK 56).
+4. With the app open, press **`j`** in the terminal (or use **Open DevTools** in the shake menu).
+
+Check that Metro sees the device:
+
+```bash
+curl http://127.0.0.1:8081/json/list
+```
+
+You should get a non-empty JSON array while the app is open. If it is `[]`, reload the app (`r` in the terminal) or re-run `yarn android:debug`.
+
+Wi‑Fi-only (no USB): use `npx expo start --tunnel` instead, then reconnect Expo Go.
 
 ## Get a fresh project
 
 When you're ready, run:
 
 ```bash
-npm run reset-project
+yarn reset-project
 ```
 
 This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.

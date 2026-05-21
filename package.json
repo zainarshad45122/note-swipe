@@ -32,12 +32,14 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
+    "start": "NODE_OPTIONS='--dns-result-order=ipv4first' expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
+    "android": "NODE_OPTIONS='--dns-result-order=ipv4first' expo start --android --localhost",
+    "android:debug": "adb reverse tcp:8081 tcp:8081 && NODE_OPTIONS='--dns-result-order=ipv4first' expo start --android --localhost",
+    "ios": "NODE_OPTIONS='--dns-result-order=ipv4first' expo start --ios --localhost",
+    "web": "NODE_OPTIONS='--dns-result-order=ipv4first' expo start --web",
     "lint": "expo lint"
   },
-  "private": true
+  "private": true,
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
