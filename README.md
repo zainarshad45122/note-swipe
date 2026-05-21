@@ -25,6 +25,20 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Linting
+
+Uses the official [Expo ESLint setup](https://docs.expo.dev/guides/using-eslint/) (`eslint.config.js` + `eslint-config-expo`).
+
+```bash
+yarn lint          # ESLint (logic, hooks, imports, Expo rules)
+yarn format        # Prettier (spacing, quotes, line breaks)
+yarn lint -- --fix # ESLint auto-fixes
+```
+
+**Spacing/indentation** is handled by **Prettier**, not ESLint alone. On save: Prettier formats the file, then ESLint fixes lint issues.
+
+Install [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) (see `.vscode/extensions.json`). If spacing still looks wrong, check that Prettier is the default formatter for `.tsx` (workspace settings override global ESLint-as-formatter).
+
 ## Android debugging (physical device)
 
 If **Open DevTools** shows `No compatible apps connected`, Metro is not seeing your phone as a debugger target. Use USB + port forwarding:
