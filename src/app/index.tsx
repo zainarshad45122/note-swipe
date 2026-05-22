@@ -1,15 +1,20 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
+import { Note } from '@/components/notes';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Spacing } from '@/constants/theme';
+import { BottomNavHeight, Spacing } from '@/constants/theme';
 
 export default function HomeScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title" style={styles.title}>
-        NoteSwipe
-      </ThemedText>
+      <View style={styles.noteWrapper}>
+        <Note
+          notebookName="Startup Ideas"
+          title="Quick capture"
+          content="Build a feature where users can shuffle old forgotten notes like memory rediscovery."
+          createdAt={new Date()}
+        />
+      </View>
     </ThemedView>
   );
 }
@@ -18,10 +23,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingBottom: BottomTabInset + Spacing.three,
+    paddingHorizontal: Spacing.three,
+    paddingBottom: BottomNavHeight + Spacing.three,
   },
-  title: {
-    textAlign: 'center',
+  noteWrapper: {
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
   },
 });

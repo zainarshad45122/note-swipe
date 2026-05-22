@@ -3,12 +3,15 @@
  * https://docs.expo.dev/guides/color-schemes/
  */
 
-import { Colors } from '@/constants/theme';
+import { Colors, type ThemeColor } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-export function useTheme() {
-  const scheme = useColorScheme();
-  const theme = scheme === 'unspecified' ? 'light' : scheme;
+/** Shared palette shape — light and dark use the same keys, different values. */
+export type Theme = Record<ThemeColor, string>;
 
-  return Colors[theme];
+export function useTheme(): Theme {
+  const scheme = useColorScheme();
+  const themeKey = scheme === 'unspecified' ? 'light' : scheme;
+
+  return Colors[themeKey];
 }

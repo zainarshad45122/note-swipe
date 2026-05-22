@@ -4,18 +4,18 @@
 
 ## Overview
 
-**NoteSwipe** is a motion-first, swipe-based note-taking app where every piece of content is a **card**. Users create, organize, and interact with text, image, voice, and video notes. Cards group into **notebooks**; notebooks can later be private/password-protected.
+**NoteSwipe** is a motion-first, swipe-based note-taking app where every piece of content is a **note**. Users create, organize, and interact with text, image, voice, and video notes. Notes group into **notebooks**; notebooks can later be private/password-protected.
 
 **Goal:** Fast, intuitive, Gen Z–style experience — quick capture, swipe navigation, media-rich notes, offline-first.
 
-**UI reference:** Light and dark home mockups in the project assets (card stack, filter chips, gesture hints, floating bottom nav with central **+**).
+**UI reference:** Light and dark home mockups in the project assets (note stack, filter chips, gesture hints, floating bottom nav with central **+**).
 
 ---
 
 ## Core Principles
 
-1. **Everything is a card** — unified content model
-2. **Swipe-first navigation** — horizontal between cards, vertical for feed/actions
+1. **Everything is a note** — unified content model
+2. **Swipe-first navigation** — horizontal between notes, vertical for feed/actions
 3. **Fast capture** — minimal friction
 4. **Media-native notes** — text, image, voice, video (Phase 2+)
 5. **Offline-first** — local persistence; sync optional later
@@ -29,8 +29,8 @@
 Performance is a **high priority** across every phase — not a late polish pass.
 
 - **Frame rate:** Maintain **60 FPS** as the baseline; aim for **120 FPS** on high-refresh displays (ProMotion, 120 Hz Android) where the device and OS allow it.
-- **Animations:** Swipes, transitions, and micro-interactions must feel fluid — use the UI thread (Reanimated), avoid jank from heavy JS work during gestures, and keep layout stable while cards move.
-- **Gestures:** Deck scrolling, snap-to-card, and swipe actions should track the finger with minimal latency; no stutter when switching cards or notebooks.
+- **Animations:** Swipes, transitions, and micro-interactions must feel fluid — use the UI thread (Reanimated), avoid jank from heavy JS work during gestures, and keep layout stable while notes move.
+- **Gestures:** Deck scrolling, snap-to-note, and swipe actions should track the finger with minimal latency; no stutter when switching notes or notebooks.
 - **Startup & navigation:** Fast cold start, snappy tab/screen transitions, and responsive tap feedback.
 - **Lists & media:** Virtualize long feeds where needed; lazy-load images/video; defer non-critical work off the interaction path.
 
@@ -40,7 +40,7 @@ Performance is a **high priority** across every phase — not a late polish pass
 
 ## Data Model
 
-### Card
+### Note
 
 | Field        | Type                                      | Notes               |
 | ------------ | ----------------------------------------- | ------------------- |
@@ -64,7 +64,7 @@ Performance is a **high priority** across every phase — not a late polish pass
 | `passwordHash` | string?  | If private; Phase 4 |
 | `createdAt`    | ISO date |                     |
 
-**Architectural rule:** All features extend the Card abstraction — do not build parallel note systems per media type.
+**Architectural rule:** All features extend the Note abstraction — do not build parallel content models per media type.
 
 ---
 
@@ -90,23 +90,23 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 
 ### Phase 1 — MVP (Core Swipe Notes) — **CURRENT FOCUS**
 
-**Goal:** Create cards, swipe through them, organize into notebooks, persist locally.
+**Goal:** Create notes, swipe through them, organize into notebooks, persist locally.
 
 | Step | Feature                                           | Status                                |
 | ---- | ------------------------------------------------- | ------------------------------------- |
-| 1.1  | Card model + types (text)                         | ⬜                                    |
-| 1.2  | Create / edit / delete text cards                 | ⬜                                    |
+| 1.1  | Note model + types (text)                         | ⬜                                    |
+| 1.2  | Create / edit / delete text notes                 | ⬜                                    |
 | 1.3  | Local storage (SQLite)                            | ⬜                                    |
-| 1.4  | Full-screen swipe deck (horizontal, snap-to-card) | ⬜                                    |
+| 1.4  | Full-screen swipe deck (horizontal, snap-to-note) | ⬜                                    |
 | 1.5  | Notebook model + CRUD                             | ⬜                                    |
-| 1.6  | Assign cards to notebooks                         | ⬜                                    |
-| 1.7  | Filter cards by notebook                          | ⬜                                    |
-| 1.8  | Home screen — card stack / feed                   | ⬜                                    |
+| 1.6  | Assign notes to notebooks                         | ⬜                                    |
+| 1.7  | Filter notes by notebook                          | ⬜                                    |
+| 1.8  | Home screen — note stack / feed                   | ⬜                                    |
 | 1.9  | Notebook screen                                   | ⬜                                    |
-| 1.10 | Simple card viewer                                | ⬜                                    |
+| 1.10 | Simple note viewer                                | ⬜                                    |
 | 1.11 | Basic navigation shell (tabs aligned to product)  | 🟡 Starter tabs only (Home / Explore) |
 
-**MVP done when:** User can create a card → swipe smoothly at 60 FPS (no dropped frames on mid-range devices) → assign to notebook → data persists after restart.
+**MVP done when:** User can create a note → swipe smoothly at 60 FPS (no dropped frames on mid-range devices) → assign to notebook → data persists after restart.
 
 ---
 
@@ -117,11 +117,11 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 | Step | Feature                          | Status |
 | ---- | -------------------------------- | ------ |
 | 2.1  | Camera image capture + preview   | ⬜     |
-| 2.2  | Image cards + storage            | ⬜     |
+| 2.2  | Image notes + storage            | ⬜     |
 | 2.3  | Voice record + playback UI       | ⬜     |
-| 2.4  | Voice cards                      | ⬜     |
+| 2.4  | Voice notes                      | ⬜     |
 | 2.5  | Short video record + inline play | ⬜     |
-| 2.6  | Video cards                      | ⬜     |
+| 2.6  | Video notes                      | ⬜     |
 | 2.7  | File storage abstraction         | ⬜     |
 | 2.8  | Compression strategy             | ⬜     |
 | 2.9  | Thumbnails (image/video)         | ⬜     |
@@ -135,13 +135,13 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 
 | Step | Feature                   | Status |
 | ---- | ------------------------- | ------ |
-| 3.1  | Tags on cards             | ⬜     |
+| 3.1  | Tags on notes             | ⬜     |
 | 3.2  | Filter by tags            | ⬜     |
 | 3.3  | Search by content         | ⬜     |
 | 3.4  | Search by notebook / tags | ⬜     |
 | 3.5  | Suggested notebooks       | ⬜     |
-| 3.6  | Recently used cards       | ⬜     |
-| 3.7  | Pin cards                 | ⬜     |
+| 3.6  | Recently used notes       | ⬜     |
+| 3.7  | Pin notes                 | ⬜     |
 | 3.8  | Pin notebooks             | ⬜     |
 
 ---
@@ -165,7 +165,7 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 
 | Step | Feature                                        | Status |
 | ---- | ---------------------------------------------- | ------ |
-| 5.1  | Card stack physics                             | ⬜     |
+| 5.1  | Note stack physics                             | ⬜     |
 | 5.2  | Spring-based transitions                       | ⬜     |
 | 5.3  | Parallax swipe effects                         | ⬜     |
 | 5.4  | Multi-direction gestures                       | ⬜     |
@@ -182,7 +182,7 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 | Step | Feature                        | Status |
 | ---- | ------------------------------ | ------ |
 | 6.1  | User accounts                  | ⬜     |
-| 6.2  | Cloud sync (cards + notebooks) | ⬜     |
+| 6.2  | Cloud sync (notes + notebooks) | ⬜     |
 | 6.3  | Export / backup                | ⬜     |
 | 6.4  | Restore from backup            | ⬜     |
 | 6.5  | Real-time sync (optional)      | ⏭     |
@@ -193,10 +193,10 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 
 | Screen                                               | Phase | Status                     |
 | ---------------------------------------------------- | ----- | -------------------------- |
-| Home — greeting, filters, card stack, gesture hints  | 1     | ⬜                         |
+| Home — greeting, filters, note stack, gesture hints  | 1     | ⬜                         |
 | Notebooks list / detail                              | 1     | ⬜                         |
-| Card create / edit                                   | 1     | ⬜                         |
-| Card full-screen viewer                              | 1     | ⬜                         |
+| Note create / edit                                   | 1     | ⬜                         |
+| Note full-screen viewer                              | 1     | ⬜                         |
 | Bottom nav: Home, Notebooks, **+**, Capture, Profile | 1–2   | 🟡 Partial (2-tab starter) |
 | Search                                               | 3     | ⬜                         |
 | Private notebook unlock                              | 4     | ⬜                         |
@@ -210,10 +210,11 @@ _Last updated: May 2026_
 - Expo 56 with themed components (`themed-text`, `themed-view`, `theme.ts`) and light/dark `ThemeProvider`
 - Tabs: **Home** (shows “NoteSwipe”) and **Explore** (placeholder) via `app-tabs` / `app-tabs.web`
 - Starter demo UI removed (splash overlay, collapsibles, external links, tutorial content)
-- No Card/Notebook store, SQLite, swipe deck, or product screens yet
+- No Note/Notebook store, SQLite, swipe deck, or product screens yet
 - Reanimated + Gesture Handler installed and ready for Phase 1 deck
+- **UI (in progress):** `Note` component first; `NoteStack` later
 
-**Suggested Phase 1 build order:** types → SQLite → store → swipe deck on Home → notebooks + filter → create/edit card → align tabs with mockup nav.
+**Suggested Phase 1 build order:** types → SQLite → store → swipe deck on Home → notebooks + filter → create/edit note → align tabs with mockup nav.
 
 ---
 
