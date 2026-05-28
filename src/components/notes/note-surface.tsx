@@ -1,13 +1,8 @@
-import type { ReactNode } from 'react';
-import { Platform, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-
-export type NoteSurfaceProps = {
-  children: ReactNode;
-  style?: StyleProp<ViewStyle>;
-};
+import type { NoteSurfaceProps } from '@/types/notes/note.types';
 
 export function NoteSurface({ children, style }: NoteSurfaceProps) {
   return (
@@ -34,7 +29,7 @@ const styles = StyleSheet.create({
         shadowRadius: 16,
       },
       android: {
-        elevation: 6,
+        elevation: 4,
       },
       default: {},
     }) ?? {},

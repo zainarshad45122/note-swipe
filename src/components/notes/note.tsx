@@ -1,21 +1,14 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { CalendarIcon } from '@/components/icons/calendar-icon';
-import { NotebookPill } from '@/components/notes/notebook-pill';
+import { NotebookPill } from '@/components/notebook-pill';
 import { NoteSurface } from '@/components/notes/note-surface';
 import { getNoteBodyTypography, getNoteTitleTypography } from '@/components/notes/note-typography';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-export type NoteProps = {
-  title?: string;
-  content: string;
-  createdAt: Date | string;
-  notebookName?: string;
-  style?: StyleProp<ViewStyle>;
-};
+import type { NoteProps } from '@/types/notes/note.types';
 
 function formatCreatedAt(value: Date | string): string {
   const date = typeof value === 'string' ? new Date(value) : value;

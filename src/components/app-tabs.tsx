@@ -29,31 +29,39 @@ export default function AppTabs() {
   return (
     <Tabs>
       <TabSlot style={styles.slot} />
-      <TabList asChild>
-        <BottomNavBar>
-          <TabTrigger name="index" href="/" asChild>
-            <NavTabItem
-              label="Home"
-              slotStyle={TAB_SLOT.home}
-              renderIcon={(color) => <HomeIcon size={24} color={color} />}
-            />
-          </TabTrigger>
-          <TabTrigger name="notebooks" href="/notebooks" asChild>
-            <NavTabItem
-              label="Notebooks"
-              slotStyle={TAB_SLOT.notebooks}
-              renderIcon={(color) => <NotebookIcon size={24} color={color} />}
-            />
-          </TabTrigger>
-          <TabTrigger name="profile" href="/profile" asChild>
-            <NavTabItem
-              label="Profile"
-              slotStyle={TAB_SLOT.profile}
-              renderIcon={(color) => <ProfileIcon size={24} color={color} />}
-            />
-          </TabTrigger>
-        </BottomNavBar>
+      {/*
+        Route registration: TabList only picks up direct TabTrigger children.
+        Our bar wraps triggers in views, so we register routes here (hidden) and
+        mirror them in BottomNavBar without href (expo-router/ui pattern).
+      */}
+      <TabList style={styles.hiddenTabList}>
+        <TabTrigger name="index" href="/" />
+        <TabTrigger name="notebooks" href="/notebooks" />
+        <TabTrigger name="profile" href="/profile" />
       </TabList>
+      <BottomNavBar>
+        <TabTrigger name="index" asChild>
+          <NavTabItem
+            label="Home"
+            slotStyle={TAB_SLOT.home}
+            renderIcon={(color) => <HomeIcon size={24} color={color} />}
+          />
+        </TabTrigger>
+        <TabTrigger name="notebooks" asChild>
+          <NavTabItem
+            label="Notebooks"
+            slotStyle={TAB_SLOT.notebooks}
+            renderIcon={(color) => <NotebookIcon size={24} color={color} />}
+          />
+        </TabTrigger>
+        <TabTrigger name="profile" asChild>
+          <NavTabItem
+            label="Profile"
+            slotStyle={TAB_SLOT.profile}
+            renderIcon={(color) => <ProfileIcon size={24} color={color} />}
+          />
+        </TabTrigger>
+      </BottomNavBar>
     </Tabs>
   );
 }
@@ -61,5 +69,8 @@ export default function AppTabs() {
 const styles = StyleSheet.create({
   slot: {
     flex: 1,
+  },
+  hiddenTabList: {
+    display: 'none',
   },
 });

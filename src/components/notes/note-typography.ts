@@ -1,7 +1,4 @@
-export type NoteTypography = {
-  fontSize: number;
-  lineHeight: number;
-};
+import type { NoteTypography } from '@/types/notes/note.types';
 
 function lineHeightFor(fontSize: number): number {
   return Math.round(fontSize * 1.38);
