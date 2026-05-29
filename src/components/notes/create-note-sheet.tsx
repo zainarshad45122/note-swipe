@@ -7,6 +7,7 @@ import {
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -20,7 +21,7 @@ import {
   useWindowDimensions,
   type LayoutChangeEvent,
 } from 'react-native';
-import { RichEditor } from 'react-native-pell-rich-editor';
+import { RichEditor, actions, type RichEditorHandle } from 'react-native-pell-rich-editor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -34,18 +35,19 @@ import {
 import { CreateNoteEditorToolbar } from '@/components/notes/create-note-editor-toolbar';
 import { ThemedText } from '@/components/themed-text';
 import { EditorCardShadow, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
 const NOTE_CHARACTER_LIMIT = 2000;
 
-const NOTE_COLORS = [
-  '#A9A5FF',
-  '#FFD0DF',
-  '#FFDAB5',
-  '#FFF2B5',
-  '#CCF1CF',
-  '#CCE8FF',
-  '#E1D4FF',
+const NOTE_ACCENT_COLORS = [
+  '#6366F1',
+  '#DB2777',
+  '#EA580C',
+  '#CA8A04',
+  '#16A34A',
+  '#2563EB',
+  '#9333EA',
 ] as const;
 
 type CreateNoteSheetProps = {
@@ -96,19 +98,56 @@ function BorderedRowCard({
 export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheetProps>(
   function CreateNoteSheet({ notebookName = 'Personal' }, ref) {
     const theme = useTheme();
+    const colorScheme = useColorScheme();
     const insets = useSafeAreaInsets();
     const { height: windowHeight } = useWindowDimensions();
     const modalRef = useRef<BottomSheetModal>(null);
-    const richTextRef = useRef<{
-      sendAction: (type: string, action: string, data?: unknown, options?: unknown) => void;
-      showAndroidKeyboard: () => void;
-      registerToolbar: (
-        listener: (items: Array<string | { type: string; value?: unknown }>) => void,
-      ) => void;
-    } | null>(null);
+    const richTextRef = useRef<RichEditorHandle | null>(null);
     const [htmlContent, setHtmlContent] = useState('');
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [isEditorReady, setIsEditorReady] = useState(false);
+
+    const noteColorOptions = useMemo(
+      () => [
+        { key: 'default', color: theme.text, isDefault: true },
+        ...NOTE_ACCENT_COLORS.map((color, index) => ({
+          key: `accent-${index}`,
+          color,
+          isDefault: false,
+        })),
+      ],
+      [theme.text],
+    );
+
+    const selectedNoteColor = noteColorOptions[selectedColorIndex]?.color ?? theme.text;
+
+    const applyNoteTextColor = useCallback((color: string) => {
+      const editor = richTextRef.current;
+
+      if (!editor) {
+        return;
+      }
+
+      editor.setContentStyle({ color });
+      editor.showAndroidKeyboard();
+      editor.sendAction(actions.foreColor, 'result', color);
+    }, []);
+
+    useEffect(() => {
+      setSelectedColorIndex(0);
+    }, [colorScheme]);
+
+    useEffect(() => {
+      if (!isEditorReady) {
+        return;
+      }
+
+      applyNoteTextColor(selectedNoteColor);
+    }, [applyNoteTextColor, isEditorReady, selectedNoteColor]);
+
+    const handleColorSelect = useCallback((index: number) => {
+      setSelectedColorIndex(index);
+    }, []);
 
     const plainText = useMemo(() => stripHtmlToText(htmlContent), [htmlContent]);
     const characterCount = plainText.length;
@@ -205,7 +244,7 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
                       editorInitializedCallback={() => setIsEditorReady(true)}
                       editorStyle={{
                         backgroundColor: theme.background,
-                        color: theme.text,
+                        color: selectedNoteColor,
                         placeholderColor: theme.textSecondary,
                         contentCSSText:
                           'font-size:16px; line-height:24px; font-family: -apple-system, system-ui, sans-serif; padding: 0;',
@@ -266,16 +305,25 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
                   </ThemedText>
                 </View>
                 <View style={styles.swatchRow}>
-                  {NOTE_COLORS.map((color, index) => {
+                  {noteColorOptions.map(({ key, color, isDefault }, index) => {
                     const isSelected = index === selectedColorIndex;
 
                     return (
                       <Pressable
-                        key={color}
+                        key={key}
                         style={[styles.swatchWrap, isSelected && { borderColor: theme.navActive }]}
-                        onPress={() => setSelectedColorIndex(index)}
+                        onPress={() => handleColorSelect(index)}
                       >
-                        <View style={[styles.swatch, { backgroundColor: color }]} />
+                        <View
+                          style={[
+                            styles.swatch,
+                            { backgroundColor: color },
+                            isDefault && {
+                              borderWidth: StyleSheet.hairlineWidth,
+                              borderColor: theme.navBarBorder,
+                            },
+                          ]}
+                        />
                       </Pressable>
                     );
                   })}
@@ -432,23 +480,25 @@ const styles = StyleSheet.create({
   swatchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.three,
   },
   swatchWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     borderWidth: 2,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
   swatch: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
   },
   footer: {
     flexShrink: 0,
@@ -460,6 +510,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
+    marginTop: 32,
   },
   createButtonText: {
     fontSize: 17,

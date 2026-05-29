@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { actions } from 'react-native-pell-rich-editor';
+import { actions, type RichEditorHandle } from 'react-native-pell-rich-editor';
 
 import {
   EditorBulletListIcon,
@@ -10,12 +10,6 @@ import { Spacing } from '@/constants/theme';
 import type { Theme } from '@/hooks/use-theme';
 
 type ToolbarSelection = string | { type: string; value?: unknown };
-
-type RichEditorHandle = {
-  sendAction: (type: string, action: string, data?: unknown, options?: unknown) => void;
-  showAndroidKeyboard: () => void;
-  registerToolbar: (listener: (items: ToolbarSelection[]) => void) => void;
-};
 
 type CreateNoteEditorToolbarProps = {
   editorRef: RefObject<RichEditorHandle | null>;
