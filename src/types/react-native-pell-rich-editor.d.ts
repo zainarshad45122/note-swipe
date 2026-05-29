@@ -8,8 +8,10 @@ declare module 'react-native-pell-rich-editor' {
     ref?: RefObject<unknown>;
     initialContentHTML?: string;
     placeholder?: string;
+    useContainer?: boolean;
     style?: StyleProp<ViewStyle>;
     editorStyle?: Record<string, unknown>;
+    editorInitializedCallback?: () => void;
     onChange?: (value: string) => void;
   };
 

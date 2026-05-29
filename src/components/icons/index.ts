@@ -1,7 +1,11 @@
+export { CreateNoteIcon, EditorAaIcon, EditorBulletListIcon, EditorEmojiIcon, EditorImageIcon, EditorMicIcon } from '@/components/icons/create-note-toolbar-icons';
+export { ColorPaletteIcon } from '@/components/icons/color-palette-icon';
 export { CalendarIcon } from '@/components/icons/calendar-icon';
+export { ChevronRightIcon } from '@/components/icons/chevron-right-icon';
 export { CloseIcon } from '@/components/icons/close-icon';
 export { HomeIcon } from '@/components/icons/home-icon';
 export { NotebookIcon } from '@/components/icons/notebook-icon';
+export { NotebookSelectIcon } from '@/components/icons/notebook-select-icon';
 export { PlusIcon } from '@/components/icons/plus-icon';
 export { ProfileIcon } from '@/components/icons/profile-icon';
 export { SparklesIcon } from '@/components/icons/sparkles-icon';

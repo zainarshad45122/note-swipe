@@ -1,5 +1,4 @@
 import { Tabs, TabList, TabSlot, TabTrigger } from 'expo-router/ui';
-import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useRef } from 'react';
 import { StyleSheet } from 'react-native';
 
@@ -32,8 +31,8 @@ export default function AppTabs() {
   const createNoteSheetRef = useRef<CreateNoteSheetHandle>(null);
 
   return (
-    <BottomSheetModalProvider>
-      <Tabs>
+    <>
+      <Tabs style={styles.tabs}>
         <TabSlot style={styles.slot} />
         {/*
           Route registration: TabList only picks up direct TabTrigger children.
@@ -70,11 +69,14 @@ export default function AppTabs() {
         </BottomNavBar>
       </Tabs>
       <CreateNoteSheet ref={createNoteSheetRef} />
-    </BottomSheetModalProvider>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
+  tabs: {
+    flex: 1,
+  },
   slot: {
     flex: 1,
   },

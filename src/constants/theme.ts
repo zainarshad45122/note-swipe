@@ -11,6 +11,7 @@ export const Colors = {
   light: {
     text: '#000000',
     background: '#ffffff',
+    sheetSurface: '#F5F3FA',
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
@@ -25,10 +26,17 @@ export const Colors = {
     fabForeground: '#FFFFFF',
     fabShadow: '#9333EA',
     shadow: '#000000',
+    editorToolbarBackground: '#F3F4F6',
+    editorToolbarText: '#111827',
+    notebookIconBackground: '#EDE9FE',
+    colorIconBackground: '#FFEDD5',
+    colorIconForeground: '#EA580C',
+    roundButtonBackground: '#F3F4F6',
   },
   dark: {
     text: '#ffffff',
     background: '#000000',
+    sheetSurface: '#121214',
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
     textSecondary: '#B0B4BA',
@@ -43,6 +51,12 @@ export const Colors = {
     fabForeground: '#FFFFFF',
     fabShadow: '#8B5CF6',
     shadow: '#000000',
+    editorToolbarBackground: '#1B1C20',
+    editorToolbarText: '#F8FAFC',
+    notebookIconBackground: 'rgba(147, 51, 234, 0.18)',
+    colorIconBackground: 'rgba(234, 88, 12, 0.18)',
+    colorIconForeground: '#FB923C',
+    roundButtonBackground: '#2E3135',
   },
 } as const;
 
@@ -84,3 +98,29 @@ export const Spacing = {
 } as const;
 
 export const BottomNavHeight = 100;
+
+export const CardShadow = Platform.select({
+  ios: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+  },
+  android: {
+    elevation: 3,
+  },
+  default: {},
+})!;
+
+export const EditorCardShadow = Platform.select({
+  ios: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+  },
+  android: {
+    elevation: 1,
+  },
+  default: {},
+})!;
