@@ -24,18 +24,19 @@ import {
 import { RichEditor, actions, type RichEditorHandle } from 'react-native-pell-rich-editor';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ColorSwatchRow, type ColorSwatchOption } from '@/components/color-swatch-row';
 import {
   ChevronRightIcon,
   CloseIcon,
   ColorPaletteIcon,
   CreateNoteIcon,
   NotebookSelectIcon,
-  SparklesIcon,
 } from '@/components/icons';
 import { CreateNoteEditorToolbar } from '@/components/notes/create-note-editor-toolbar';
 import { ThemedText } from '@/components/themed-text';
-import { EditorCardShadow, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useEffectiveBottomInset } from '@/hooks/use-effective-bottom-inset';
 import { useTheme } from '@/hooks/use-theme';
 
 const NOTE_CHARACTER_LIMIT = 2000;
@@ -69,20 +70,6 @@ function stripHtmlToText(html: string): string {
     .trim();
 }
 
-function EditorCard({
-  backgroundColor,
-  children,
-}: {
-  backgroundColor: string;
-  children: ReactNode;
-}) {
-  return (
-    <View style={[styles.editorCardWrap, EditorCardShadow]}>
-      <View style={[styles.editorCard, { backgroundColor }]}>{children}</View>
-    </View>
-  );
-}
-
 function BorderedRowCard({
   backgroundColor,
   borderColor,
@@ -100,14 +87,19 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
     const theme = useTheme();
     const colorScheme = useColorScheme();
     const insets = useSafeAreaInsets();
+    const bottomInset = useEffectiveBottomInset();
     const { height: windowHeight } = useWindowDimensions();
     const modalRef = useRef<BottomSheetModal>(null);
+    const colorPickerRef = useRef<BottomSheetModal>(null);
+    const notebookPickerRef = useRef<BottomSheetModal>(null);
     const richTextRef = useRef<RichEditorHandle | null>(null);
     const [htmlContent, setHtmlContent] = useState('');
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [isEditorReady, setIsEditorReady] = useState(false);
+    const [headerHeight, setHeaderHeight] = useState(0);
+    const [bottomChromeHeight, setBottomChromeHeight] = useState(0);
 
-    const noteColorOptions = useMemo(
+    const noteColorOptions = useMemo<ColorSwatchOption[]>(
       () => [
         { key: 'default', color: theme.text, isDefault: true },
         ...NOTE_ACCENT_COLORS.map((color, index) => ({
@@ -152,7 +144,17 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
     const plainText = useMemo(() => stripHtmlToText(htmlContent), [htmlContent]);
     const characterCount = plainText.length;
 
-    const snapPoints = useMemo(() => [windowHeight - insets.top], [windowHeight, insets.top]);
+    const sheetContentHeight = windowHeight - insets.top - bottomInset;
+
+    const editorHeight = useMemo(() => {
+      if (headerHeight === 0 || bottomChromeHeight === 0) {
+        return 0;
+      }
+
+      return Math.max(120, sheetContentHeight - headerHeight - bottomChromeHeight);
+    }, [bottomChromeHeight, headerHeight, sheetContentHeight]);
+
+    const snapPoints = useMemo(() => [sheetContentHeight], [sheetContentHeight]);
 
     const sheetBackgroundStyle = useMemo(
       () => [styles.sheetBackground, { backgroundColor: theme.background }],
@@ -165,6 +167,8 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
 
     const handleDismiss = useCallback(() => {
       setIsEditorReady(false);
+      colorPickerRef.current?.dismiss();
+      notebookPickerRef.current?.dismiss();
       modalRef.current?.dismiss();
     }, []);
 
@@ -184,23 +188,40 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
       [],
     );
 
+    const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
+      setHeaderHeight(event.nativeEvent.layout.height);
+    }, []);
+
+    const handleBottomChromeLayout = useCallback((event: LayoutChangeEvent) => {
+      setBottomChromeHeight(event.nativeEvent.layout.height);
+    }, []);
+
+    const openColorPicker = useCallback(() => {
+      colorPickerRef.current?.present();
+    }, []);
+
+    const openNotebookPicker = useCallback(() => {
+      notebookPickerRef.current?.present();
+    }, []);
+
     return (
-      <BottomSheetModal
-        ref={modalRef}
-        index={0}
-        snapPoints={snapPoints}
-        topInset={insets.top}
-        enableDynamicSizing={false}
-        enablePanDownToClose
-        keyboardBehavior="extend"
-        keyboardBlurBehavior="restore"
-        backdropComponent={renderBackdrop}
-        handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
-        backgroundStyle={sheetBackgroundStyle}
-      >
-        <BottomSheetView style={styles.container}>
-          <View style={styles.body}>
-            <View style={styles.header}>
+      <>
+        <BottomSheetModal
+          ref={modalRef}
+          index={0}
+          snapPoints={snapPoints}
+          topInset={insets.top}
+          bottomInset={bottomInset}
+          enableDynamicSizing={false}
+          enablePanDownToClose
+          keyboardBehavior="extend"
+          keyboardBlurBehavior="restore"
+          backdropComponent={renderBackdrop}
+          handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
+          backgroundStyle={sheetBackgroundStyle}
+        >
+          <BottomSheetView style={[styles.container, { height: sheetContentHeight }]}>
+            <View style={styles.header} onLayout={handleHeaderLayout}>
               <Pressable
                 style={[
                   styles.roundButton,
@@ -213,140 +234,154 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
               >
                 <CloseIcon color={theme.text} size={16} />
               </Pressable>
+
               <View style={styles.headerTitleBlock}>
                 <ThemedText style={styles.headerTitle}>New Note</ThemedText>
-                <ThemedText themeColor="textSecondary" style={styles.headerSubtitle}>
-                  Capture your thoughts
+                <ThemedText themeColor="textSecondary" style={styles.headerNotebookName}>
+                  {notebookName}
                 </ThemedText>
               </View>
-              <Pressable
-                style={[
-                  styles.roundButton,
-                  {
-                    backgroundColor: theme.roundButtonBackground,
-                    borderColor: theme.navBarBorder,
-                  },
-                ]}
-              >
-                <SparklesIcon color={theme.navActive} size={18} />
-              </Pressable>
-            </View>
 
-            <View style={styles.editorSection}>
-              <EditorCard backgroundColor={theme.background}>
-                <View style={styles.editorCardInner}>
-                  <View style={styles.editorBody}>
-                    <RichEditor
-                      ref={richTextRef}
-                      initialContentHTML=""
-                      placeholder="Start writing..."
-                      style={[styles.editor, { height: 420 }]}
-                      editorInitializedCallback={() => setIsEditorReady(true)}
-                      editorStyle={{
-                        backgroundColor: theme.background,
-                        color: selectedNoteColor,
-                        placeholderColor: theme.textSecondary,
-                        contentCSSText:
-                          'font-size:16px; line-height:24px; font-family: -apple-system, system-ui, sans-serif; padding: 0;',
-                      }}
-                      onChange={setHtmlContent}
-                    />
-                  </View>
-                  <View style={styles.editorFooter}>
-                    <ThemedText themeColor="textSecondary" style={styles.characterCount}>
-                      {characterCount} / {NOTE_CHARACTER_LIMIT}
-                    </ThemedText>
-                  </View>
-                  <CreateNoteEditorToolbar
-                    editorRef={richTextRef}
-                    editorReady={isEditorReady}
-                    theme={theme}
-                    borderColor={theme.navBarBorder}
-                    backgroundColor={theme.background}
-                  />
-                </View>
-              </EditorCard>
-            </View>
-
-            <View style={styles.optionsSection}>
-              <Pressable
-                onPress={() => {
-                  // Notebook selection is intentionally static for now.
-                }}
-              >
-                <BorderedRowCard
-                  backgroundColor={theme.background}
-                  borderColor={theme.navBarBorder}
+              <View style={styles.headerActions}>
+                <Pressable
+                  style={[
+                    styles.roundButton,
+                    {
+                      backgroundColor: theme.roundButtonBackground,
+                      borderColor: theme.navBarBorder,
+                    },
+                  ]}
+                  onPress={openNotebookPicker}
+                  accessibilityLabel="Choose notebook"
                 >
-                  <View style={styles.notebookRowInner}>
-                    <View
-                      style={[styles.rowIcon, { backgroundColor: theme.notebookIconBackground }]}
-                    >
-                      <NotebookSelectIcon color={theme.navActive} size={22} />
-                    </View>
-                    <View style={styles.notebookTextBlock}>
-                      <ThemedText themeColor="textSecondary" style={styles.rowLabel}>
-                        Notebook
-                      </ThemedText>
-                      <ThemedText style={styles.rowValue}>{notebookName}</ThemedText>
-                    </View>
-                    <ChevronRightIcon color={theme.textSecondary} size={20} />
-                  </View>
-                </BorderedRowCard>
-              </Pressable>
+                  <NotebookSelectIcon color={theme.navActive} size={18} />
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.roundButton,
+                    {
+                      backgroundColor: theme.roundButtonBackground,
+                      borderColor: theme.navBarBorder,
+                    },
+                  ]}
+                  onPress={openColorPicker}
+                  accessibilityLabel="Choose note color"
+                >
+                  <ColorPaletteIcon color={theme.colorIconForeground} size={18} />
+                </Pressable>
+              </View>
+            </View>
 
-              <BorderedRowCard backgroundColor={theme.background} borderColor={theme.navBarBorder}>
-                <View style={styles.colorHeader}>
-                  <View style={[styles.rowIcon, { backgroundColor: theme.colorIconBackground }]}>
-                    <ColorPaletteIcon color={theme.colorIconForeground} size={22} />
-                  </View>
-                  <ThemedText themeColor="textSecondary" style={styles.rowLabel}>
-                    Color
+            <View style={[styles.editorBody, editorHeight > 0 && { height: editorHeight }]}>
+              <RichEditor
+                ref={richTextRef}
+                initialContentHTML=""
+                placeholder="Start writing..."
+                style={[styles.editor, editorHeight > 0 && { height: editorHeight }]}
+                editorInitializedCallback={() => setIsEditorReady(true)}
+                editorStyle={{
+                  backgroundColor: theme.background,
+                  color: selectedNoteColor,
+                  placeholderColor: theme.textSecondary,
+                  contentCSSText:
+                    'font-size:16px; line-height:24px; font-family: -apple-system, system-ui, sans-serif; padding: 0;',
+                }}
+                onChange={setHtmlContent}
+              />
+            </View>
+
+            <View style={styles.bottomChrome} onLayout={handleBottomChromeLayout}>
+              <View style={styles.editorChrome}>
+                <View style={styles.editorFooter}>
+                  <ThemedText themeColor="textSecondary" style={styles.characterCount}>
+                    {characterCount} / {NOTE_CHARACTER_LIMIT}
                   </ThemedText>
                 </View>
-                <View style={styles.swatchRow}>
-                  {noteColorOptions.map(({ key, color, isDefault }, index) => {
-                    const isSelected = index === selectedColorIndex;
+                <CreateNoteEditorToolbar
+                  editorRef={richTextRef}
+                  editorReady={isEditorReady}
+                  theme={theme}
+                  borderColor={theme.navBarBorder}
+                  backgroundColor={theme.background}
+                />
+              </View>
 
-                    return (
-                      <Pressable
-                        key={key}
-                        style={[styles.swatchWrap, isSelected && { borderColor: theme.navActive }]}
-                        onPress={() => handleColorSelect(index)}
-                      >
-                        <View
-                          style={[
-                            styles.swatch,
-                            { backgroundColor: color },
-                            isDefault && {
-                              borderWidth: StyleSheet.hairlineWidth,
-                              borderColor: theme.navBarBorder,
-                            },
-                          ]}
-                        />
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </BorderedRowCard>
+              <View style={styles.footer}>
+                <Pressable
+                  style={[styles.createButton, { backgroundColor: theme.accent }]}
+                  onPress={() => {
+                    // Create flow is intentionally static for now.
+                  }}
+                >
+                  <CreateNoteIcon color={theme.fabForeground} size={20} />
+                  <ThemedText style={[styles.createButtonText, { color: theme.fabForeground }]}>
+                    Create Note
+                  </ThemedText>
+                </Pressable>
+              </View>
             </View>
-          </View>
+          </BottomSheetView>
+        </BottomSheetModal>
 
-          <View style={[styles.footer]}>
-            <Pressable
-              style={[styles.createButton, { backgroundColor: theme.accent }]}
-              onPress={() => {
-                // Create flow is intentionally static for now.
-              }}
-            >
-              <CreateNoteIcon color={theme.fabForeground} size={20} />
-              <ThemedText style={[styles.createButtonText, { color: theme.fabForeground }]}>
-                Create Note
-              </ThemedText>
-            </Pressable>
-          </View>
-        </BottomSheetView>
-      </BottomSheetModal>
+        <BottomSheetModal
+          ref={colorPickerRef}
+          enableDynamicSizing
+          stackBehavior="push"
+          bottomInset={bottomInset}
+          enablePanDownToClose
+          backdropComponent={renderBackdrop}
+          handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
+          backgroundStyle={sheetBackgroundStyle}
+        >
+          <BottomSheetView
+            style={[
+              styles.pickerSheetContent,
+              { paddingBottom: Math.max(bottomInset, Spacing.four) },
+            ]}
+          >
+            <ThemedText style={styles.pickerSheetTitle}>Color</ThemedText>
+            <ColorSwatchRow
+              colorOptions={noteColorOptions}
+              selectedColorIndex={selectedColorIndex}
+              onColorSelect={handleColorSelect}
+            />
+          </BottomSheetView>
+        </BottomSheetModal>
+
+        <BottomSheetModal
+          ref={notebookPickerRef}
+          enableDynamicSizing
+          stackBehavior="push"
+          bottomInset={bottomInset}
+          enablePanDownToClose
+          backdropComponent={renderBackdrop}
+          handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
+          backgroundStyle={sheetBackgroundStyle}
+        >
+          <BottomSheetView
+            style={[
+              styles.pickerSheetContent,
+              { paddingBottom: Math.max(bottomInset, Spacing.four) },
+            ]}
+          >
+            <ThemedText style={styles.pickerSheetTitle}>Notebook</ThemedText>
+            <BorderedRowCard backgroundColor={theme.background} borderColor={theme.navBarBorder}>
+              <View style={styles.notebookRowInner}>
+                <View style={[styles.rowIcon, { backgroundColor: theme.notebookIconBackground }]}>
+                  <NotebookSelectIcon color={theme.navActive} size={22} />
+                </View>
+                <View style={styles.notebookTextBlock}>
+                  <ThemedText themeColor="textSecondary" style={styles.rowLabel}>
+                    Notebook
+                  </ThemedText>
+                  <ThemedText style={styles.rowValue}>{notebookName}</ThemedText>
+                </View>
+                <ChevronRightIcon color={theme.textSecondary} size={20} />
+              </View>
+            </BorderedRowCard>
+          </BottomSheetView>
+        </BottomSheetModal>
+      </>
     );
   },
 );
@@ -356,16 +391,14 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Spacing.three,
   },
-  body: {
-    flex: 1,
-    minHeight: 0,
-  },
   header: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: Spacing.one,
-    paddingBottom: Spacing.three,
+    paddingBottom: Spacing.two,
+    gap: Spacing.two,
   },
   handleIndicator: {
     width: 44,
@@ -384,6 +417,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitleBlock: {
+    flex: 1,
     alignItems: 'center',
   },
   headerTitle: {
@@ -391,52 +425,36 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     lineHeight: 26,
   },
-  headerSubtitle: {
+  headerNotebookName: {
     fontSize: 14,
     lineHeight: 20,
+    marginTop: 2,
   },
-  editorSection: {
-    flex: 1,
-    minHeight: 350,
-    marginBottom: Spacing.three,
-  },
-  editorCardWrap: {
-    flex: 1,
-    borderRadius: 18,
-  },
-  editorCard: {
-    flex: 1,
-    borderRadius: 18,
-    overflow: 'hidden',
-  },
-  editorCardInner: {
-    flex: 1,
-    minHeight: 0,
-    flexDirection: 'column',
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
   },
   editorBody: {
-    flex: 1,
-    minHeight: 120,
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
+    flexShrink: 0,
   },
   editor: {
     width: '100%',
   },
-  editorFooter: {
+  bottomChrome: {
     flexShrink: 0,
+  },
+  editorChrome: {
+    flexShrink: 0,
+  },
+  editorFooter: {
     alignItems: 'flex-end',
-    paddingHorizontal: Spacing.three,
     paddingTop: Spacing.one,
-    paddingBottom: Spacing.two,
+    paddingBottom: Spacing.one,
   },
   characterCount: {
     fontSize: 12,
     lineHeight: 16,
-  },
-  optionsSection: {
-    flexShrink: 0,
-    gap: Spacing.three,
   },
   borderedRow: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -469,39 +487,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: '700',
   },
-  colorHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    paddingTop: 14,
-    paddingBottom: Spacing.two,
-  },
-  swatchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.three,
-  },
-  swatchWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  swatch: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-  },
   footer: {
     flexShrink: 0,
+    paddingTop: Spacing.three,
+    paddingBottom: Spacing.three,
   },
   createButton: {
     borderRadius: 18,
@@ -510,12 +499,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
-    marginTop: 32,
+    marginBottom: 16,
   },
   createButtonText: {
     fontSize: 17,
     lineHeight: 22,
     fontWeight: '600',
-    marginTop: 'auto',
+  },
+  pickerSheetContent: {
+    paddingHorizontal: Spacing.three,
+  },
+  pickerSheetTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    lineHeight: 22,
+    marginBottom: Spacing.three,
   },
 });
