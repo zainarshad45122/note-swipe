@@ -8,4 +8,5 @@ export { NotebookIcon } from '@/components/icons/notebook-icon';
 export { NotebookSelectIcon } from '@/components/icons/notebook-select-icon';
 export { PlusIcon } from '@/components/icons/plus-icon';
 export { ProfileIcon } from '@/components/icons/profile-icon';
+export { SearchIcon } from '@/components/icons/search-icon';
 export { SparklesIcon } from '@/components/icons/sparkles-icon';

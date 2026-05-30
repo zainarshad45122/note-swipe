@@ -32,6 +32,8 @@ export const Colors = {
     colorIconBackground: '#FFEDD5',
     colorIconForeground: '#EA580C',
     roundButtonBackground: '#F3F4F6',
+    searchMuted: '#8E7FA8',
+    notebookRowBackground: '#FAF9FD',
   },
   dark: {
     text: '#ffffff',
@@ -57,6 +59,8 @@ export const Colors = {
     colorIconBackground: 'rgba(234, 88, 12, 0.18)',
     colorIconForeground: '#FB923C',
     roundButtonBackground: '#2E3135',
+    searchMuted: '#A895C4',
+    notebookRowBackground: '#1A1922',
   },
 } as const;
 

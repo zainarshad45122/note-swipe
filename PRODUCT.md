@@ -42,16 +42,32 @@ Performance is a **high priority** across every phase — not a late polish pass
 
 ### Note
 
-| Field        | Type                                      | Notes               |
-| ------------ | ----------------------------------------- | ------------------- |
-| `id`         | string                                    | Unique              |
-| `type`       | `"text" \| "image" \| "voice" \| "video"` | Phase 1: text only  |
-| `content`    | string \| fileUri \| metadata             | Type-dependent      |
-| `createdAt`  | ISO date                                  |                     |
-| `updatedAt`  | ISO date                                  |                     |
-| `notebookId` | string \| null                            | Optional assignment |
-| `isPinned`   | boolean                                   | Phase 3             |
-| `tags`       | string[]                                  | Optional; Phase 3   |
+| Field        | Type                                      | Notes                                                                 |
+| ------------ | ----------------------------------------- | --------------------------------------------------------------------- |
+| `id`         | string                                    | Unique                                                                |
+| `type`       | `"text" \| "image" \| "voice" \| "video"` | Phase 1: text only                                                    |
+| `content`    | string \| fileUri \| metadata             | Phase 1 text: HTML body (rich text + color); **no separate title**    |
+| `textColor`  | string?                                   | Phase 1 text: user-selected swatch color (default = theme text)     |
+| `createdAt`  | ISO date                                  |                                                                       |
+| `updatedAt`  | ISO date                                  |                                                                       |
+| `notebookId` | string \| null                            | Optional assignment                                                   |
+| `isPinned`   | boolean                                   | Phase 3                                                               |
+| `tags`       | string[]                                  | Optional; Phase 3                                                     |
+
+**Phase 1 text notes — content rules:**
+
+- **One field only:** the note body. No title, no excerpt/preview field, no auto-summary.
+- **Create & edit:** same UI — the **Create Note** bottom sheet (`CreateNoteSheet`). Tapping **+** opens it empty; tapping a note in the deck opens it pre-filled for update.
+- **Rich text:** bold, italic, bullet list, numbered list; up to **2000** characters (plain-text count).
+- **Color:** user picks a text color via the color picker in the sheet; stored on the note and applied when rendering.
+
+**Deck card display (read surface):**
+
+- Show the note **as written** — same formatting and text color as in the editor, not a plain-text summary.
+- **Fit what you can:** within the fixed card, render as much content as fits (adaptive type size + line clamp). Append **`…`** when content is truncated.
+- **No separate viewer screen** in Phase 1 — the card is a glance/read viewport; full note opens in the create/edit sheet on tap.
+
+**Architectural rule:** Do not introduce a parallel preview/title layer. Deck truncation is a **layout** concern only; `content` remains the single source of truth.
 
 ### Notebook
 
@@ -94,19 +110,20 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 
 | Step | Feature                                           | Status                                |
 | ---- | ------------------------------------------------- | ------------------------------------- |
-| 1.1  | Note model + types (text)                         | ⬜                                    |
-| 1.2  | Create / edit / delete text notes                 | ⬜                                    |
+| 1.1  | Note model + types (text, HTML body, color)       | 🟡 Types partial; persistence pending |
+| 1.2  | Create / edit text notes (single sheet, no title) | 🟡 Create UI; edit-on-tap pending     |
 | 1.3  | Local storage (SQLite)                            | ⬜                                    |
-| 1.4  | Full-screen swipe deck (horizontal, snap-to-note) | ⬜                                    |
+| 1.4  | Full-screen swipe deck (horizontal, snap-to-note) | 🟡 Deck UI; HTML render pending       |
 | 1.5  | Notebook model + CRUD                             | ⬜                                    |
-| 1.6  | Assign notes to notebooks                         | ⬜                                    |
+| 1.6  | Assign notes to notebooks                         | 🟡 Picker UI stub in create sheet     |
 | 1.7  | Filter notes by notebook                          | ⬜                                    |
-| 1.8  | Home screen — note stack / feed                   | ⬜                                    |
+| 1.8  | Home screen — note stack / feed                   | 🟡 Home + deck                        |
 | 1.9  | Notebook screen                                   | ⬜                                    |
-| 1.10 | Simple note viewer                                | ⬜                                    |
-| 1.11 | Basic navigation shell (tabs aligned to product)  | 🟡 Starter tabs only (Home / Explore) |
+| 1.10 | Deck card — formatted body, fit + ellipsis        | ⬜                                    |
+| 1.11 | Tap deck note → open create sheet in edit mode    | ⬜                                    |
+| 1.12 | Basic navigation shell (tabs aligned to product)  | 🟡 Partial (Home / Notebooks / Profile) |
 
-**MVP done when:** User can create a note → swipe smoothly at 60 FPS (no dropped frames on mid-range devices) → assign to notebook → data persists after restart.
+**MVP done when:** User can create a note → see it in the deck (formatted, truncated with `…` if needed) → tap to edit in the same sheet → assign to notebook → data persists after restart → swipe smoothly at 60 FPS.
 
 ---
 
@@ -193,13 +210,14 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 
 | Screen                                               | Phase | Status                     |
 | ---------------------------------------------------- | ----- | -------------------------- |
-| Home — greeting, filters, note stack, gesture hints  | 1     | ⬜                         |
+| Home — greeting, filters, note stack, gesture hints  | 1     | 🟡 Deck on Home             |
 | Notebooks list / detail                              | 1     | ⬜                         |
-| Note create / edit                                   | 1     | ⬜                         |
-| Note full-screen viewer                              | 1     | ⬜                         |
-| Bottom nav: Home, Notebooks, **+**, Capture, Profile | 1–2   | 🟡 Partial (2-tab starter) |
+| Note create / edit (shared bottom sheet)             | 1     | 🟡 Create UI; edit pending |
+| Bottom nav: Home, Notebooks, **+**, Profile          | 1–2   | 🟡 Partial                 |
 | Search                                               | 3     | ⬜                         |
 | Private notebook unlock                              | 4     | ⬜                         |
+
+**Note create / edit flow:** One bottom sheet for both modes. **Create:** FAB **+** → empty sheet. **Edit:** tap note in deck → same sheet with full content, notebook, and color; save updates the note. No dedicated read-only viewer in Phase 1.
 
 ---
 
@@ -208,13 +226,14 @@ Status legend: `⬜ Not started` · `🟡 In progress` · `✅ Done` · `⏭ Def
 _Last updated: May 2026_
 
 - Expo 56 with themed components (`themed-text`, `themed-view`, `theme.ts`) and light/dark `ThemeProvider`
-- Tabs: **Home** (shows “NoteSwipe”) and **Explore** (placeholder) via `app-tabs` / `app-tabs.web`
-- Starter demo UI removed (splash overlay, collapsibles, external links, tutorial content)
-- No Note/Notebook store, SQLite, swipe deck, or product screens yet
-- Reanimated + Gesture Handler installed and ready for Phase 1 deck
-- **UI (in progress):** `Note` component first; `NoteStack` later
+- Tabs: **Home**, **Notebooks**, **Profile** + FAB create via `app-tabs` / `BottomNavBar`
+- **Note deck:** horizontal swipe deck on Home (`NoteDeck`, card components)
+- **Create note:** full-height `CreateNoteSheet` — rich editor, formatting toolbar, notebook/color pickers in sub-sheets; persistence not wired yet
+- **Deck card (`Note`):** plain-text display today; target is HTML + color, fit-to-card with ellipsis, tap → edit sheet
+- No SQLite / store yet; mock notes on Home
+- Reanimated + Gesture Handler in use for deck
 
-**Suggested Phase 1 build order:** types → SQLite → store → swipe deck on Home → notebooks + filter → create/edit note → align tabs with mockup nav.
+**Suggested Phase 1 build order:** finalize note types (HTML + color, no title) → SQLite + store → wire create/save → deck HTML render + ellipsis → tap-to-edit sheet → notebooks + filter.
 
 ---
 
