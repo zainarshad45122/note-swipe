@@ -18,6 +18,8 @@ import {
   Pressable,
   StyleSheet,
   View,
+  Keyboard,
+  InteractionManager,
   useWindowDimensions,
   type LayoutChangeEvent,
 } from 'react-native';
@@ -50,6 +52,8 @@ const NOTE_ACCENT_COLORS = [
   '#2563EB',
   '#9333EA',
 ] as const;
+
+type PickerMode = 'color' | 'notebook';
 
 type CreateNoteSheetProps = {
   notebookName?: string;
@@ -90,10 +94,11 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
     const bottomInset = useEffectiveBottomInset();
     const { height: windowHeight } = useWindowDimensions();
     const modalRef = useRef<BottomSheetModal>(null);
-    const colorPickerRef = useRef<BottomSheetModal>(null);
-    const notebookPickerRef = useRef<BottomSheetModal>(null);
+    const pickerSheetRef = useRef<BottomSheetModal>(null);
+    const pickerModeRef = useRef<PickerMode>('color');
     const richTextRef = useRef<RichEditorHandle | null>(null);
     const [htmlContent, setHtmlContent] = useState('');
+    const [activePicker, setActivePicker] = useState<PickerMode | null>(null);
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [isEditorReady, setIsEditorReady] = useState(false);
     const [headerHeight, setHeaderHeight] = useState(0);
@@ -167,8 +172,8 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
 
     const handleDismiss = useCallback(() => {
       setIsEditorReady(false);
-      colorPickerRef.current?.dismiss();
-      notebookPickerRef.current?.dismiss();
+      setActivePicker(null);
+      pickerSheetRef.current?.dismiss();
       modalRef.current?.dismiss();
     }, []);
 
@@ -196,12 +201,30 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
       setBottomChromeHeight(event.nativeEvent.layout.height);
     }, []);
 
-    const openColorPicker = useCallback(() => {
-      colorPickerRef.current?.present();
+    const visiblePicker = activePicker ?? pickerModeRef.current;
+
+    const presentPicker = useCallback((mode: PickerMode) => {
+      Keyboard.dismiss();
+      pickerModeRef.current = mode;
+      setActivePicker(mode);
+
+      InteractionManager.runAfterInteractions(() => {
+        requestAnimationFrame(() => {
+          pickerSheetRef.current?.present();
+        });
+      });
     }, []);
 
+    const openColorPicker = useCallback(() => {
+      presentPicker('color');
+    }, [presentPicker]);
+
     const openNotebookPicker = useCallback(() => {
-      notebookPickerRef.current?.present();
+      presentPicker('notebook');
+    }, [presentPicker]);
+
+    const handlePickerDismiss = useCallback(() => {
+      setActivePicker(null);
     }, []);
 
     return (
@@ -253,6 +276,7 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
                   ]}
                   onPress={openNotebookPicker}
                   accessibilityLabel="Choose notebook"
+                  hitSlop={8}
                 >
                   <NotebookSelectIcon color={theme.navActive} size={18} />
                 </Pressable>
@@ -266,6 +290,7 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
                   ]}
                   onPress={openColorPicker}
                   accessibilityLabel="Choose note color"
+                  hitSlop={8}
                 >
                   <ColorPaletteIcon color={theme.colorIconForeground} size={18} />
                 </Pressable>
@@ -321,65 +346,56 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
               </View>
             </View>
           </BottomSheetView>
-        </BottomSheetModal>
 
-        <BottomSheetModal
-          ref={colorPickerRef}
-          enableDynamicSizing
-          stackBehavior="push"
-          bottomInset={bottomInset}
-          enablePanDownToClose
-          backdropComponent={renderBackdrop}
-          handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
-          backgroundStyle={sheetBackgroundStyle}
-        >
-          <BottomSheetView
-            style={[
-              styles.pickerSheetContent,
-              { paddingBottom: Math.max(bottomInset, Spacing.four) },
-            ]}
+          <BottomSheetModal
+            ref={pickerSheetRef}
+            enableDynamicSizing
+            stackBehavior="push"
+            bottomInset={bottomInset}
+            enablePanDownToClose
+            backdropComponent={renderBackdrop}
+            handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
+            backgroundStyle={sheetBackgroundStyle}
+            onDismiss={handlePickerDismiss}
           >
-            <ThemedText style={styles.pickerSheetTitle}>Color</ThemedText>
-            <ColorSwatchRow
-              colorOptions={noteColorOptions}
-              selectedColorIndex={selectedColorIndex}
-              onColorSelect={handleColorSelect}
-            />
-          </BottomSheetView>
-        </BottomSheetModal>
+            <BottomSheetView style={styles.pickerSheetContent}>
+              {visiblePicker === 'color' ? (
+                <>
+                  <ThemedText style={styles.pickerSheetTitle}>Color</ThemedText>
+                  <ColorSwatchRow
+                    colorOptions={noteColorOptions}
+                    selectedColorIndex={selectedColorIndex}
+                    onColorSelect={handleColorSelect}
+                  />
+                </>
+              ) : null}
 
-        <BottomSheetModal
-          ref={notebookPickerRef}
-          enableDynamicSizing
-          stackBehavior="push"
-          bottomInset={bottomInset}
-          enablePanDownToClose
-          backdropComponent={renderBackdrop}
-          handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
-          backgroundStyle={sheetBackgroundStyle}
-        >
-          <BottomSheetView
-            style={[
-              styles.pickerSheetContent,
-              { paddingBottom: Math.max(bottomInset, Spacing.four) },
-            ]}
-          >
-            <ThemedText style={styles.pickerSheetTitle}>Notebook</ThemedText>
-            <BorderedRowCard backgroundColor={theme.background} borderColor={theme.navBarBorder}>
-              <View style={styles.notebookRowInner}>
-                <View style={[styles.rowIcon, { backgroundColor: theme.notebookIconBackground }]}>
-                  <NotebookSelectIcon color={theme.navActive} size={22} />
-                </View>
-                <View style={styles.notebookTextBlock}>
-                  <ThemedText themeColor="textSecondary" style={styles.rowLabel}>
-                    Notebook
-                  </ThemedText>
-                  <ThemedText style={styles.rowValue}>{notebookName}</ThemedText>
-                </View>
-                <ChevronRightIcon color={theme.textSecondary} size={20} />
-              </View>
-            </BorderedRowCard>
-          </BottomSheetView>
+              {visiblePicker === 'notebook' ? (
+                <>
+                  <ThemedText style={styles.pickerSheetTitle}>Notebook</ThemedText>
+                  <BorderedRowCard
+                    backgroundColor={theme.background}
+                    borderColor={theme.navBarBorder}
+                  >
+                    <View style={styles.notebookRowInner}>
+                      <View
+                        style={[styles.rowIcon, { backgroundColor: theme.notebookIconBackground }]}
+                      >
+                        <NotebookSelectIcon color={theme.navActive} size={22} />
+                      </View>
+                      <View style={styles.notebookTextBlock}>
+                        <ThemedText themeColor="textSecondary" style={styles.rowLabel}>
+                          Notebook
+                        </ThemedText>
+                        <ThemedText style={styles.rowValue}>{notebookName}</ThemedText>
+                      </View>
+                      <ChevronRightIcon color={theme.textSecondary} size={20} />
+                    </View>
+                  </BorderedRowCard>
+                </>
+              ) : null}
+            </BottomSheetView>
+          </BottomSheetModal>
         </BottomSheetModal>
       </>
     );
@@ -508,6 +524,7 @@ const styles = StyleSheet.create({
   },
   pickerSheetContent: {
     paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.three,
   },
   pickerSheetTitle: {
     fontSize: 17,
