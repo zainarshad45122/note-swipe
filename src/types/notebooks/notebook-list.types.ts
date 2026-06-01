@@ -1,5 +1,1 @@
-export type NotebookListItem = {
-  id: string;
-  title: string;
-  noteCount: number;
-};
+export type { Notebook as NotebookListItem } from '@/types/notebooks/notebook.types';

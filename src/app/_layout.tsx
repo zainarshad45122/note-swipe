@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 
 import AppTabs from '@/components/app-tabs';
+import { AppBootstrap } from '@/components/app-bootstrap';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -15,9 +16,11 @@ export default function TabLayout() {
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <BottomSheetModalProvider>
-            <View style={styles.root}>
-              <AppTabs />
-            </View>
+            <AppBootstrap>
+              <View style={styles.root}>
+                <AppTabs />
+              </View>
+            </AppBootstrap>
           </BottomSheetModalProvider>
         </ThemeProvider>
       </SafeAreaProvider>

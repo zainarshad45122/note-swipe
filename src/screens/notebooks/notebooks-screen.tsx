@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -19,25 +20,19 @@ import {
   CreateNotebookSheet,
   type CreateNotebookSheetHandle,
 } from '@/screens/notebooks/create-notebook-sheet';
-import type { NotebookListItem } from '@/types/notebooks/notebook-list.types';
-
-const INITIAL_NOTEBOOKS: NotebookListItem[] = [
-  { id: 'personal', title: 'Personal', noteCount: 24 },
-  { id: 'work', title: 'Work', noteCount: 16 },
-  { id: 'ideas', title: 'Ideas', noteCount: 8 },
-  { id: 'journal', title: 'Journal', noteCount: 12 },
-];
-
-function createNotebookId(title: string) {
-  return `${title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
-}
-
+import { useNotebookStore } from '@/stores/use-notebook-store';
+import type { Notebook } from '@/types/notebooks/notebook.types';
 export function NotebooksScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const createNotebookSheetRef = useRef<CreateNotebookSheetHandle>(null);
-  const [notebooks, setNotebooks] = useState(INITIAL_NOTEBOOKS);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const notebooks = useNotebookStore((state) => state.notebooks);
+  const isHydrated = useNotebookStore((state) => state.isHydrated);
+  const isLoading = useNotebookStore((state) => state.isLoading);
+  const error = useNotebookStore((state) => state.error);
+  const createNotebook = useNotebookStore((state) => state.createNotebook);
 
   const filteredNotebooks = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -58,18 +53,14 @@ export function NotebooksScreen() {
     createNotebookSheetRef.current?.present();
   }, []);
 
-  const handleCreateNotebook = useCallback((title: string) => {
-    setNotebooks((current) => [
-      ...current,
-      {
-        id: createNotebookId(title),
-        title,
-        noteCount: 0,
-      },
-    ]);
-  }, []);
+  const handleCreateNotebook = useCallback(
+    async (title: string) => {
+      await createNotebook(title);
+    },
+    [createNotebook],
+  );
 
-  const renderNotebook = useCallback<ListRenderItem<NotebookListItem>>(
+  const renderNotebook = useCallback<ListRenderItem<Notebook>>(
     ({ item }) => (
       <NotebookRow
         title={item.title}
@@ -128,21 +119,36 @@ export function NotebooksScreen() {
             clearButtonMode="while-editing"
           />
         </View>
+
+        {error ? (
+          <ThemedText themeColor="textSecondary" style={styles.errorText}>
+            {error}
+          </ThemedText>
+        ) : null}
       </View>
     ),
     [
+      error,
       handleOpenCreateSheet,
       notebookCountLabel,
       searchQuery,
-      theme.sheetSurface,
-      theme.searchMuted,
       theme.navActive,
       theme.navBarBorder,
       theme.notebookIconBackground,
+      theme.searchMuted,
+      theme.sheetSurface,
       theme.text,
       theme.textSecondary,
     ],
   );
+
+  if (!isHydrated && isLoading) {
+    return (
+      <ThemedView style={[styles.container, styles.centered]}>
+        <ActivityIndicator color={theme.navActive} />
+      </ThemedView>
+    );
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -171,6 +177,10 @@ export function NotebooksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   listContent: {
     paddingHorizontal: Spacing.three,
@@ -223,5 +233,9 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: Spacing.three,
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

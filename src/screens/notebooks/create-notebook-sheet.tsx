@@ -26,7 +26,7 @@ export type CreateNotebookSheetHandle = {
 };
 
 type CreateNotebookSheetProps = {
-  onCreateNotebook: (title: string) => void;
+  onCreateNotebook: (title: string) => void | Promise<void>;
 };
 
 export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateNotebookSheetProps>(
@@ -35,6 +35,7 @@ export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateN
     const bottomInset = useEffectiveBottomInset();
     const modalRef = useRef<BottomSheetModal>(null);
     const [title, setTitle] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const sheetBackgroundStyle = useMemo(
       () => [styles.sheetBackground, { backgroundColor: theme.background }],
@@ -43,6 +44,7 @@ export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateN
 
     const resetForm = useCallback(() => {
       setTitle('');
+      setIsSubmitting(false);
     }, []);
 
     const handlePresent = useCallback(() => {
@@ -70,18 +72,24 @@ export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateN
       [],
     );
 
-    const handleCreate = useCallback(() => {
+    const handleCreate = useCallback(async () => {
       const trimmedTitle = title.trim();
 
-      if (!trimmedTitle) {
+      if (!trimmedTitle || isSubmitting) {
         return;
       }
 
-      onCreateNotebook(trimmedTitle);
-      handleDismiss();
-    }, [handleDismiss, onCreateNotebook, title]);
+      setIsSubmitting(true);
 
-    const canCreate = title.trim().length > 0;
+      try {
+        await onCreateNotebook(trimmedTitle);
+        handleDismiss();
+      } finally {
+        setIsSubmitting(false);
+      }
+    }, [handleDismiss, isSubmitting, onCreateNotebook, title]);
+
+    const canCreate = title.trim().length > 0 && !isSubmitting;
 
     return (
       <BottomSheetModal
