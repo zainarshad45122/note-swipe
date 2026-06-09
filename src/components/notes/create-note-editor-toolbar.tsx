@@ -1,6 +1,6 @@
 import { useEffect, useState, type RefObject, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { actions, type RichEditorHandle } from 'react-native-pell-rich-editor';
+import { actions, type RichEditor } from 'react-native-pell-rich-editor';
 
 import {
   EditorBulletListIcon,
@@ -12,18 +12,18 @@ import type { Theme } from '@/hooks/use-theme';
 type ToolbarSelection = string | { type: string; value?: unknown };
 
 type CreateNoteEditorToolbarProps = {
-  editorRef: RefObject<RichEditorHandle | null>;
+  editorRef: RefObject<RichEditor | null>;
   editorReady: boolean;
   theme: Theme;
   borderColor: string;
   backgroundColor: string;
 };
 
-const TOOLBAR_ITEMS: Array<{
+const TOOLBAR_ITEMS: {
   key: string;
   action: string;
   render: (color: string) => ReactNode;
-}> = [
+}[] = [
   {
     key: 'bold',
     action: actions.setBold,
@@ -32,9 +32,7 @@ const TOOLBAR_ITEMS: Array<{
   {
     key: 'italic',
     action: actions.setItalic,
-    render: (color) => (
-      <Text style={[styles.formatLabel, styles.italicLabel, { color }]}>I</Text>
-    ),
+    render: (color) => <Text style={[styles.formatLabel, styles.italicLabel, { color }]}>I</Text>,
   },
   {
     key: 'bullet-list',

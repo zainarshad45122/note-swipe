@@ -8,7 +8,9 @@ export function findColorIndex(
     return 0;
   }
 
-  const normalized = color.toLowerCase();
-  const matchIndex = colorOptions.findIndex((option) => option.color.toLowerCase() === normalized);
-  return matchIndex >= 0 ? matchIndex : 0;
+  const index = colorOptions.findIndex(
+    (option) => option.color.toLowerCase() === color.toLowerCase(),
+  );
+
+  return index >= 0 ? index : 0;
 }

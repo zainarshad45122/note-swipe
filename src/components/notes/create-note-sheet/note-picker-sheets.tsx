@@ -59,14 +59,16 @@ export function NotePickerSheets({
       ref={pickerSheetRef}
       enableDynamicSizing
       stackBehavior="push"
-      bottomInset={bottomInset}
+      bottomInset={0}
       enablePanDownToClose
       backdropComponent={renderBackdrop}
       handleIndicatorStyle={handleIndicatorStyle}
       backgroundStyle={sheetBackgroundStyle}
       onDismiss={onPickerDismiss}
     >
-      <BottomSheetView style={styles.pickerSheetContent}>
+      <BottomSheetView
+        style={[styles.pickerSheetContent, { paddingBottom: Math.max(bottomInset, Spacing.three) }]}
+      >
         {visiblePicker === 'color' ? (
           <>
             <ThemedText style={styles.pickerSheetTitle}>Color</ThemedText>

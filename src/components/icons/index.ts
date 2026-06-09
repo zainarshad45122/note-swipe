@@ -1,4 +1,11 @@
-export { CreateNoteIcon, EditorAaIcon, EditorBulletListIcon, EditorEmojiIcon, EditorImageIcon, EditorMicIcon } from '@/components/icons/create-note-toolbar-icons';
+export {
+  CreateNoteIcon,
+  EditorAaIcon,
+  EditorBulletListIcon,
+  EditorEmojiIcon,
+  EditorImageIcon,
+  EditorMicIcon,
+} from '@/components/icons/create-note-toolbar-icons';
 export { ColorPaletteIcon } from '@/components/icons/color-palette-icon';
 export { CalendarIcon } from '@/components/icons/calendar-icon';
 export { ChevronRightIcon } from '@/components/icons/chevron-right-icon';

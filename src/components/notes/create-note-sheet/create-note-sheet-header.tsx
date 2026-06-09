@@ -12,7 +12,7 @@ type CreateNoteSheetHeaderProps = {
   onClose: () => void;
   onOpenNotebookPicker: () => void;
   onOpenColorPicker: () => void;
-  onLayout: (event: LayoutChangeEvent) => void;
+  onLayout?: (event: LayoutChangeEvent) => void;
 };
 
 export function CreateNoteSheetHeader({

@@ -1,6 +1,10 @@
 import { create } from 'zustand';
 
-import { createNotebook, ensureDefaultNotebook, listNotebooks } from '@/db/repositories/notebook-repository';
+import {
+  createNotebook,
+  ensureDefaultNotebook,
+  listNotebooks,
+} from '@/db/repositories/notebook-repository';
 import type { Notebook } from '@/types/notebooks/notebook.types';
 
 type NotebookStore = {

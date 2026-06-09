@@ -19,6 +19,7 @@ import { useNoteSheetPickers } from '@/components/notes/create-note-sheet/hooks/
 import { useNoteSubmit } from '@/components/notes/create-note-sheet/hooks/use-note-submit';
 import { NotePickerSheets } from '@/components/notes/create-note-sheet/note-picker-sheets';
 import { Spacing } from '@/constants/theme';
+import { BOTTOM_SHEET_BACKDROP_OPACITY } from '@/utils/bottom-sheet/bottom-sheet-style';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -59,14 +60,13 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
 
     const {
       bottomInset,
-      editorHeight,
       handleBottomChromeLayout,
       handleHeaderLayout,
       insets,
       sheetBackgroundStyle,
       sheetContentHeight,
       snapPoints,
-    } = useCreateNoteSheetLayout(theme.background);
+    } = useCreateNoteSheetLayout(theme);
 
     const {
       visiblePicker,
@@ -142,7 +142,12 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
 
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
-        <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.25} />
+        <BottomSheetBackdrop
+          {...props}
+          disappearsOnIndex={-1}
+          appearsOnIndex={0}
+          opacity={BOTTOM_SHEET_BACKDROP_OPACITY}
+        />
       ),
       [],
     );
@@ -155,7 +160,7 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
         index={0}
         snapPoints={snapPoints}
         topInset={insets.top}
-        bottomInset={bottomInset}
+        bottomInset={0}
         enableDynamicSizing={false}
         enablePanDownToClose
         keyboardBehavior="extend"
@@ -178,7 +183,6 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
           <CreateNoteEditorSection
             editorRef={richTextRef}
             editorKey={editorKey}
-            editorHeight={editorHeight}
             initialContentHTML={initialContentHTML}
             selectedNoteColor={selectedNoteColor}
             theme={theme}
@@ -187,6 +191,7 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
           />
 
           <CreateNoteFooter
+            bottomInset={bottomInset}
             characterCount={characterCount}
             editorRef={richTextRef}
             editorReady={isEditorReady}

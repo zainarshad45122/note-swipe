@@ -1,6 +1,6 @@
 import { type RefObject } from 'react';
 import { Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
-import type { RichEditorHandle } from 'react-native-pell-rich-editor';
+import type { RichEditor } from 'react-native-pell-rich-editor';
 
 import { CreateNoteIcon } from '@/components/icons';
 import { NOTE_CHARACTER_LIMIT } from '@/components/notes/create-note-sheet/constants';
@@ -10,8 +10,9 @@ import { Spacing } from '@/constants/theme';
 import type { Theme } from '@/hooks/use-theme';
 
 type CreateNoteFooterProps = {
+  bottomInset: number;
   characterCount: number;
-  editorRef: RefObject<RichEditorHandle | null>;
+  editorRef: RefObject<RichEditor | null>;
   editorReady: boolean;
   isEditMode: boolean;
   isSaving: boolean;
@@ -22,6 +23,7 @@ type CreateNoteFooterProps = {
 };
 
 export function CreateNoteFooter({
+  bottomInset,
   characterCount,
   editorRef,
   editorReady,
@@ -51,7 +53,7 @@ export function CreateNoteFooter({
         />
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(bottomInset, Spacing.three) }]}>
         <Pressable
           style={[styles.createButton, { backgroundColor: theme.accent }]}
           onPress={onSubmit}
@@ -91,7 +93,6 @@ const styles = StyleSheet.create({
   footer: {
     flexShrink: 0,
     paddingTop: Spacing.three,
-    paddingBottom: Spacing.three,
   },
   createButton: {
     borderRadius: 18,

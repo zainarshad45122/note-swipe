@@ -2,16 +2,16 @@ import { useCallback, useMemo, useState } from 'react';
 import { useWindowDimensions, type LayoutChangeEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useEffectiveBottomInset } from '@/hooks/use-effective-bottom-inset';
+import { createBottomSheetBackgroundStyle } from '@/utils/bottom-sheet/bottom-sheet-style';
+import type { Theme } from '@/hooks/use-theme';
 
-export function useCreateNoteSheetLayout(backgroundColor: string) {
+export function useCreateNoteSheetLayout(theme: Theme) {
   const insets = useSafeAreaInsets();
-  const bottomInset = useEffectiveBottomInset();
   const { height: windowHeight } = useWindowDimensions();
   const [headerHeight, setHeaderHeight] = useState(0);
   const [bottomChromeHeight, setBottomChromeHeight] = useState(0);
 
-  const sheetContentHeight = windowHeight - insets.top - bottomInset;
+  const sheetContentHeight = windowHeight - insets.top;
 
   const editorHeight = useMemo(() => {
     if (headerHeight === 0 || bottomChromeHeight === 0) {
@@ -23,10 +23,7 @@ export function useCreateNoteSheetLayout(backgroundColor: string) {
 
   const snapPoints = useMemo(() => [sheetContentHeight], [sheetContentHeight]);
 
-  const sheetBackgroundStyle = useMemo(
-    () => [{ borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor }],
-    [backgroundColor],
-  );
+  const sheetBackgroundStyle = useMemo(() => createBottomSheetBackgroundStyle(theme), [theme]);
 
   const handleHeaderLayout = useCallback((event: LayoutChangeEvent) => {
     setHeaderHeight(event.nativeEvent.layout.height);
@@ -37,7 +34,7 @@ export function useCreateNoteSheetLayout(backgroundColor: string) {
   }, []);
 
   return {
-    bottomInset,
+    bottomInset: insets.bottom,
     editorHeight,
     handleBottomChromeLayout,
     handleHeaderLayout,

@@ -1,4 +1,8 @@
-import { CARD_GAP_RATIO, CARD_WIDTH_RATIO, OVERSCAN_NOTES } from '@/components/notes/deck/note-deck.constants';
+import {
+  CARD_GAP_RATIO,
+  CARD_WIDTH_RATIO,
+  OVERSCAN_NOTES,
+} from '@/components/notes/deck/note-deck.constants';
 import type { DeckLayout, NoteDeckItem, VisibleDeckNote } from '@/types/notes/note-deck.types';
 
 export function clampIndex(index: number, count: number) {
@@ -21,7 +25,10 @@ export function getDeckLayout(screenWidth: number): DeckLayout {
   };
 }
 
-export function getVisibleNotes(notes: NoteDeckItem[], windowCenterIndex: number): VisibleDeckNote[] {
+export function getVisibleNotes(
+  notes: NoteDeckItem[],
+  windowCenterIndex: number,
+): VisibleDeckNote[] {
   const startIndex = Math.max(0, windowCenterIndex - OVERSCAN_NOTES);
   const endIndex = Math.min(notes.length - 1, windowCenterIndex + OVERSCAN_NOTES);
 

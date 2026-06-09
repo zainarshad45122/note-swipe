@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { actions, type RichEditorHandle } from 'react-native-pell-rich-editor';
+import { actions, type RichEditor } from 'react-native-pell-rich-editor';
 
 import { useNoteSheetStore } from '@/stores/use-note-sheet-store';
 
@@ -12,7 +12,7 @@ export function useNoteRichEditor({ selectedNoteColor, themeText }: UseNoteRichE
   const sheetMode = useNoteSheetStore((state) => state.mode);
   const editingNote = useNoteSheetStore((state) => state.editingNote);
   const isEditMode = sheetMode === 'edit';
-  const richTextRef = useRef<RichEditorHandle | null>(null);
+  const richTextRef = useRef<RichEditor | null>(null);
   const [isEditorReady, setIsEditorReady] = useState(false);
 
   const applyNoteTextColor = useCallback((color: string) => {

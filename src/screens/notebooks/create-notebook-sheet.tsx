@@ -4,20 +4,17 @@ import {
   BottomSheetView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet';
-import {
-  forwardRef,
-  useCallback,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { Pressable, StyleSheet, TextInput } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CreateNoteIcon } from '@/components/icons';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
-import { useEffectiveBottomInset } from '@/hooks/use-effective-bottom-inset';
+import {
+  BOTTOM_SHEET_BACKDROP_OPACITY,
+  createBottomSheetBackgroundStyle,
+} from '@/utils/bottom-sheet/bottom-sheet-style';
 import { useTheme } from '@/hooks/use-theme';
 
 export type CreateNotebookSheetHandle = {
@@ -32,15 +29,12 @@ type CreateNotebookSheetProps = {
 export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateNotebookSheetProps>(
   function CreateNotebookSheet({ onCreateNotebook }, ref) {
     const theme = useTheme();
-    const bottomInset = useEffectiveBottomInset();
+    const insets = useSafeAreaInsets();
     const modalRef = useRef<BottomSheetModal>(null);
     const [title, setTitle] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const sheetBackgroundStyle = useMemo(
-      () => [styles.sheetBackground, { backgroundColor: theme.background }],
-      [theme.background],
-    );
+    const sheetBackgroundStyle = useMemo(() => createBottomSheetBackgroundStyle(theme), [theme]);
 
     const resetForm = useCallback(() => {
       setTitle('');
@@ -67,7 +61,12 @@ export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateN
 
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
-        <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.25} />
+        <BottomSheetBackdrop
+          {...props}
+          disappearsOnIndex={-1}
+          appearsOnIndex={0}
+          opacity={BOTTOM_SHEET_BACKDROP_OPACITY}
+        />
       ),
       [],
     );
@@ -95,7 +94,7 @@ export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateN
       <BottomSheetModal
         ref={modalRef}
         enableDynamicSizing
-        bottomInset={bottomInset}
+        bottomInset={0}
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         handleIndicatorStyle={[styles.handleIndicator, { backgroundColor: theme.textSecondary }]}
@@ -103,7 +102,7 @@ export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateN
         onDismiss={resetForm}
       >
         <BottomSheetView
-          style={[styles.content, { paddingBottom: Math.max(bottomInset, Spacing.four) }]}
+          style={[styles.content, { paddingBottom: Math.max(insets.bottom, Spacing.four) }]}
         >
           <ThemedText style={styles.sheetTitle}>New Notebook</ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.sheetSubtitle}>
@@ -150,10 +149,6 @@ export const CreateNotebookSheet = forwardRef<CreateNotebookSheetHandle, CreateN
 );
 
 const styles = StyleSheet.create({
-  sheetBackground: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
   handleIndicator: {
     width: 44,
     height: 4,

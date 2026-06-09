@@ -3,7 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { stripHtmlToText } from '@/components/notes/note-content';
 import type { Note } from '@/types/notes/note.types';
 
-import { findColorIndex } from '@/components/notes/create-note-sheet/utils';
+import { findColorIndex } from '@/utils/find-color-index';
 import type { ColorSwatchOption } from '@/components/color-swatch-row';
 
 export type NoteFormDraft = {
