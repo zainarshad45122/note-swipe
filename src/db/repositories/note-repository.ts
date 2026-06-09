@@ -6,6 +6,7 @@ type NoteRow = {
   id: string;
   title: string;
   notebook_id: string;
+  notebook_name: string | null;
   content: string;
   created_at: string;
   updated_at: string;
@@ -13,18 +14,29 @@ type NoteRow = {
 
 function mapNoteRow(row: NoteRow): Note {
   return {
-    id: row.id, 
+    id: row.id,
     title: row.title,
     content: row.content,
     createdAt: row.created_at,
     notebookId: row.notebook_id,
+    notebookName: row.notebook_name ?? undefined,
   };
 }
 
 async function listNoteRows() {
   const database = await getDatabase();
   return database.getAllAsync<NoteRow>(
-    `SELECT * FROM notes ORDER BY created_at DESC`,
+    `SELECT
+      notes.id,
+      notes.title,
+      notes.notebook_id,
+      notes.content,
+      notes.created_at,
+      notes.updated_at,
+      notebooks.title AS notebook_name
+    FROM notes
+    LEFT JOIN notebooks ON notebooks.id = notes.notebook_id
+    ORDER BY notes.created_at DESC`,
   );
 }
 
@@ -33,7 +45,13 @@ export async function listNotes() {
   return rows.map(mapNoteRow);
 }
 
-export async function createNote({ title, content, textColor, notebookId }: CreateNoteInput) {
+export async function createNote({
+  title,
+  content,
+  textColor,
+  notebookId,
+  notebookName,
+}: CreateNoteInput) {
   const database = await getDatabase();
   const trimmedTitle = title?.trim() ?? '';
   const trimmedNotebookId = notebookId.trim();
@@ -50,6 +68,7 @@ export async function createNote({ title, content, textColor, notebookId }: Crea
     textColor,
     createdAt: now,
     notebookId: trimmedNotebookId,
+    notebookName,
   };
 
   await database.runAsync(

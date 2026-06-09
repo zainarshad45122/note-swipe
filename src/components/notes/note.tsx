@@ -1,8 +1,10 @@
-import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { CalendarIcon } from '@/components/icons/calendar-icon';
 import { NotebookPill } from '@/components/notebook-pill';
+import { stripHtmlToText } from '@/components/notes/note-content';
+import { NoteHtmlBody } from '@/components/notes/note-html-body';
 import { NoteSurface } from '@/components/notes/note-surface';
 import { getNoteBodyTypography, getNoteTitleTypography } from '@/components/notes/note-typography';
 import { ThemedText } from '@/components/themed-text';
@@ -21,13 +23,15 @@ function formatCreatedAt(value: Date | string): string {
   });
 }
 
-export function Note({ title, content, createdAt, notebookName, style }: NoteProps) {
+export function Note({ title, content, textColor, createdAt, notebookName, style }: NoteProps) {
   const theme = useTheme();
+  const [htmlBodyHeight, setHtmlBodyHeight] = useState(0);
   const titleText = title?.trim() ?? '';
-  const contentText = content.trim();
+  const plainContent = stripHtmlToText(content);
   const hasTitle = Boolean(titleText);
-  const hasContent = Boolean(contentText);
+  const hasContent = Boolean(plainContent);
   const notebookLabel = notebookName?.trim();
+  const bodyColor = textColor ?? (hasContent ? theme.text : theme.textSecondary);
 
   const titleTypography = useMemo(
     () => (hasTitle ? getNoteTitleTypography(titleText) : null),
@@ -35,12 +39,16 @@ export function Note({ title, content, createdAt, notebookName, style }: NotePro
   );
   const bodyTypography = useMemo(
     () =>
-      getNoteBodyTypography(hasContent ? contentText : 'Empty note', {
+      getNoteBodyTypography(hasContent ? plainContent : 'Empty note', {
         hasTitle,
         titleLength: titleText.length,
       }),
-    [contentText, hasContent, hasTitle, titleText.length],
+    [hasContent, hasTitle, plainContent, titleText.length],
   );
+
+  const handleHtmlBodyLayout = (event: LayoutChangeEvent) => {
+    setHtmlBodyHeight(event.nativeEvent.layout.height);
+  };
 
   return (
     <NoteSurface style={style}>
@@ -67,14 +75,22 @@ export function Note({ title, content, createdAt, notebookName, style }: NotePro
               {titleText}
             </ThemedText>
           ) : null}
-          <ThemedText
-            themeColor={hasContent ? 'text' : 'textSecondary'}
-            style={[styles.body, bodyTypography, !hasTitle && styles.bodyOnly]}
-            adjustsFontSizeToFit
-            minimumFontScale={0.8}
-          >
-            {hasContent ? contentText : 'Empty note'}
-          </ThemedText>
+          <View style={styles.htmlBodyContainer} onLayout={handleHtmlBodyLayout}>
+            {hasContent ? (
+              <NoteHtmlBody
+                html={content}
+                textColor={bodyColor}
+                backgroundColor={theme.backgroundElement}
+                fontSize={bodyTypography.fontSize}
+                lineHeight={bodyTypography.lineHeight}
+                height={htmlBodyHeight}
+              />
+            ) : (
+              <ThemedText themeColor="textSecondary" style={[styles.body, bodyTypography]}>
+                Empty note
+              </ThemedText>
+            )}
+          </View>
         </View>
 
         <View style={styles.footer}>
@@ -108,7 +124,9 @@ const styles = StyleSheet.create({
   },
   bodySection: {
     flex: 1,
+    minHeight: 0,
     justifyContent: 'center',
+    overflow: 'hidden',
     paddingVertical: Spacing.six,
   },
   title: {
@@ -118,8 +136,10 @@ const styles = StyleSheet.create({
   body: {
     fontWeight: '700',
   },
-  bodyOnly: {
-    marginTop: 0,
+  htmlBodyContainer: {
+    flex: 1,
+    minHeight: 0,
+    width: '100%',
   },
   footer: {
     flexDirection: 'row',

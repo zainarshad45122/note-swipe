@@ -9,7 +9,7 @@ import { useNoteDeckGesture } from '@/components/notes/deck/use-note-deck-gestur
 import { useNoteDeckWindow } from '@/components/notes/deck/use-note-deck-window';
 import type { NoteDeckProps } from '@/types/notes/note-deck.types';
 
-export function NoteDeck({ notes }: NoteDeckProps) {
+export function NoteDeck({ notes, onNotePress }: NoteDeckProps) {
   const { width: screenWidth } = useWindowDimensions();
   const layout = getDeckLayout(screenWidth);
 
@@ -38,6 +38,7 @@ export function NoteDeck({ notes }: NoteDeckProps) {
                 index={index}
                 isLast={index >= notes.length - 1}
                 note={note}
+                onPress={onNotePress}
                 scrollX={window.motion.scrollX}
                 snapDistance={layout.snapDistance}
               />

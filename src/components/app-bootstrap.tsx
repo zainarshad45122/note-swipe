@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 
+import { useNoteStore } from '@/stores/use-note-store';
 import { useNotebookStore } from '@/stores/use-notebook-store';
 
 type AppBootstrapProps = {
@@ -7,11 +8,13 @@ type AppBootstrapProps = {
 };
 
 export function AppBootstrap({ children }: AppBootstrapProps) {
-  const hydrate = useNotebookStore((state) => state.hydrate);
+  const hydrateNotebooks = useNotebookStore((state) => state.hydrate);
+  const hydrateNotes = useNoteStore((state) => state.hydrate);
 
   useEffect(() => {
-    void hydrate();
-  }, [hydrate]);
+    void hydrateNotebooks();
+    void hydrateNotes();
+  }, [hydrateNotebooks, hydrateNotes]);
 
   return children;
 }

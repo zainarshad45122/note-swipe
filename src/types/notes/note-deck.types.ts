@@ -4,12 +4,15 @@ export type NoteDeckItem = {
   id: string;
   title?: string;
   content: string;
+  textColor?: string;
+  notebookId: string;
   notebookName?: string;
   createdAt: Date | string;
 };
 
 export type NoteDeckProps = {
   notes: NoteDeckItem[];
+  onNotePress?: (note: NoteDeckItem) => void;
 };
 
 export type DeckLayout = {

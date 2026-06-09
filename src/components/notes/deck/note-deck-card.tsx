@@ -4,7 +4,7 @@ import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
-import { StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
 import {
   SIDE_CARD_OPACITY,
@@ -20,6 +20,7 @@ type NoteDeckCardProps = {
   index: number;
   isLast: boolean;
   note: NoteDeckItem;
+  onPress?: (note: NoteDeckItem) => void;
   scrollX: SharedValue<number>;
   snapDistance: number;
 };
@@ -30,6 +31,7 @@ export function NoteDeckCard({
   index,
   isLast,
   note,
+  onPress,
   scrollX,
   snapDistance,
 }: NoteDeckCardProps) {
@@ -70,12 +72,14 @@ export function NoteDeckCard({
         cardStyle,
       ]}
     >
-      <Note
-        title={note.title}
-        content={note.content}
-        notebookName={note.notebookName}
-        createdAt={note.createdAt}
-      />
+      <Pressable onPress={() => onPress?.(note)}>
+        <Note
+          content={note.content}
+          textColor={note.textColor}
+          notebookName={note.notebookName}
+          createdAt={note.createdAt}
+        />
+      </Pressable>
     </Animated.View>
   );
 }

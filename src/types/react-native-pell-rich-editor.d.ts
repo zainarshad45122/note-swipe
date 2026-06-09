@@ -21,6 +21,7 @@ declare module 'react-native-pell-rich-editor' {
     registerToolbar: (
       listener: (items: Array<string | { type: string; value?: unknown }>) => void,
     ) => void;
+    setContentHTML: (html: string) => void;
     setContentStyle: (styles: {
       color?: string;
       backgroundColor?: string;

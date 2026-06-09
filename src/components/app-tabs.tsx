@@ -8,6 +8,7 @@ import { ProfileIcon } from '@/components/icons/profile-icon';
 import { BottomNavBar } from '@/components/navigation/bottom-nav-bar';
 import { CreateNoteSheet, type CreateNoteSheetHandle } from '@/components/notes/create-note-sheet';
 import { NavTabItem } from '@/components/navigation/nav-tab-item';
+import { useNoteSheetStore } from '@/stores/use-note-sheet-store';
 import { useNotebookStore } from '@/stores/use-notebook-store';
 
 const TAB_SLOT = StyleSheet.create({
@@ -30,6 +31,7 @@ const TAB_SLOT = StyleSheet.create({
 
 export default function AppTabs() {
   const createNoteSheetRef = useRef<CreateNoteSheetHandle>(null);
+  const requestOpenCreate = useNoteSheetStore((state) => state.requestOpenCreate);
   const notebooks = useNotebookStore((state) => state.notebooks);
   const defaultNotebook = notebooks[0];
 
@@ -47,7 +49,7 @@ export default function AppTabs() {
           <TabTrigger name="notebooks" href="/notebooks" />
           <TabTrigger name="profile" href="/profile" />
         </TabList>
-        <BottomNavBar onCapturePress={() => createNoteSheetRef.current?.present()}>
+        <BottomNavBar onCapturePress={() => requestOpenCreate()}>
           <TabTrigger name="index" asChild>
             <NavTabItem
               label="Home"

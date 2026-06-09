@@ -11,7 +11,10 @@ export type Note = {
   notebookName?: string;
 };
 
-export type NoteProps = Pick<Note, 'title' | 'content' | 'createdAt' | 'notebookName'> & {
+export type NoteProps = Pick<
+  Note,
+  'title' | 'content' | 'textColor' | 'createdAt' | 'notebookName'
+> & {
   // UI-only style prop for Note component composition.
   style?: StyleProp<ViewStyle>;
 };
@@ -21,6 +24,7 @@ export type CreateNoteInput = {
   content: string;
   textColor?: string;
   notebookId: string;
+  notebookName?: string;
 };
 
 export type NoteSurfaceProps = {
