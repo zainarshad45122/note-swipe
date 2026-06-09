@@ -8,6 +8,7 @@ import { ProfileIcon } from '@/components/icons/profile-icon';
 import { BottomNavBar } from '@/components/navigation/bottom-nav-bar';
 import { CreateNoteSheet, type CreateNoteSheetHandle } from '@/components/notes/create-note-sheet';
 import { NavTabItem } from '@/components/navigation/nav-tab-item';
+import { useNotebookStore } from '@/stores/use-notebook-store';
 
 const TAB_SLOT = StyleSheet.create({
   home: {
@@ -29,6 +30,8 @@ const TAB_SLOT = StyleSheet.create({
 
 export default function AppTabs() {
   const createNoteSheetRef = useRef<CreateNoteSheetHandle>(null);
+  const notebooks = useNotebookStore((state) => state.notebooks);
+  const defaultNotebook = notebooks[0];
 
   return (
     <>
@@ -68,7 +71,11 @@ export default function AppTabs() {
           </TabTrigger>
         </BottomNavBar>
       </Tabs>
-      <CreateNoteSheet ref={createNoteSheetRef} />
+      <CreateNoteSheet
+        ref={createNoteSheetRef}
+        notebookId={defaultNotebook?.id}
+        notebookName={defaultNotebook?.title ?? 'Personal'}
+      />
     </>
   );
 }

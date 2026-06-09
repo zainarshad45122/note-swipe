@@ -15,6 +15,19 @@ declare module 'react-native-pell-rich-editor' {
     onChange?: (value: string) => void;
   };
 
+  export type RichEditorHandle = {
+    sendAction: (type: string, action: string, data?: unknown, options?: unknown) => void;
+    showAndroidKeyboard: () => void;
+    registerToolbar: (
+      listener: (items: Array<string | { type: string; value?: unknown }>) => void,
+    ) => void;
+    setContentStyle: (styles: {
+      color?: string;
+      backgroundColor?: string;
+      placeholderColor?: string;
+    }) => void;
+  };
+
   export const RichEditor: ComponentType<RichEditorProps>;
 
   export type RichToolbarProps = {

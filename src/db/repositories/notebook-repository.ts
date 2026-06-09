@@ -1,6 +1,6 @@
 import { createId } from '@/db/create-id';
 import { getDatabase } from '@/db/database';
-import type { CreateNotebookInput, Notebook, NotebookRecord } from '@/types/notebooks/notebook.types';
+import type { CreateNotebookInput, Notebook } from '@/types/notebooks/notebook.types';
 
 const DEFAULT_NOTEBOOK_TITLE = 'Personal';
 
@@ -64,7 +64,7 @@ export async function createNotebook({ title }: CreateNotebookInput) {
     throw new Error('Notebook title is required.');
   }
 
-  const notebook: NotebookRecord = {
+  const notebookBase = {
     id: createId('notebook'),
     title: trimmedTitle,
     createdAt: new Date().toISOString(),
@@ -72,13 +72,13 @@ export async function createNotebook({ title }: CreateNotebookInput) {
 
   await database.runAsync(
     `INSERT INTO notebooks (id, title, created_at) VALUES (?, ?, ?)`,
-    notebook.id,
-    notebook.title,
-    notebook.createdAt,
+    notebookBase.id,
+    notebookBase.title,
+    notebookBase.createdAt,
   );
 
   return {
-    ...notebook,
+    ...notebookBase,
     noteCount: 0,
   } satisfies Notebook;
 }

@@ -40,6 +40,7 @@ import { Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useEffectiveBottomInset } from '@/hooks/use-effective-bottom-inset';
 import { useTheme } from '@/hooks/use-theme';
+import { useNoteStore } from '@/stores/use-note-store';
 
 const NOTE_CHARACTER_LIMIT = 2000;
 
@@ -56,6 +57,7 @@ const NOTE_ACCENT_COLORS = [
 type PickerMode = 'color' | 'notebook';
 
 type CreateNoteSheetProps = {
+  notebookId?: string;
   notebookName?: string;
 };
 
@@ -87,7 +89,7 @@ function BorderedRowCard({
 }
 
 export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheetProps>(
-  function CreateNoteSheet({ notebookName = 'Personal' }, ref) {
+  function CreateNoteSheet({ notebookId, notebookName = 'Personal' }, ref) {
     const theme = useTheme();
     const colorScheme = useColorScheme();
     const insets = useSafeAreaInsets();
@@ -101,8 +103,11 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
     const [activePicker, setActivePicker] = useState<PickerMode | null>(null);
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [isEditorReady, setIsEditorReady] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const [headerHeight, setHeaderHeight] = useState(0);
     const [bottomChromeHeight, setBottomChromeHeight] = useState(0);
+    const createNote = useNoteStore((state) => state.createNote);
 
     const noteColorOptions = useMemo<ColorSwatchOption[]>(
       () => [
@@ -173,6 +178,7 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
     const handleDismiss = useCallback(() => {
       setIsEditorReady(false);
       setActivePicker(null);
+      setSubmitError(null);
       pickerSheetRef.current?.dismiss();
       modalRef.current?.dismiss();
     }, []);
@@ -226,6 +232,43 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
     const handlePickerDismiss = useCallback(() => {
       setActivePicker(null);
     }, []);
+
+    const resetEditor = useCallback(() => {
+      setHtmlContent('');
+      setSelectedColorIndex(0);
+      setSubmitError(null);
+      richTextRef.current?.setContentHTML('');
+    }, []);
+
+    const handleCreateNote = useCallback(async () => {
+      if (isSaving) {
+        return;
+      }
+
+      const trimmedNotebookId = notebookId?.trim();
+      if (!trimmedNotebookId) {
+        setSubmitError('Select a notebook before creating the note.');
+        return;
+      }
+
+      setIsSaving(true);
+      setSubmitError(null);
+
+      try {
+        await createNote({
+          title: plainText.slice(0, 80),
+          content: htmlContent,
+          textColor: selectedNoteColor,
+          notebookId: trimmedNotebookId,
+        });
+        resetEditor();
+        handleDismiss();
+      } catch (error) {
+        setSubmitError(error instanceof Error ? error.message : 'Failed to create note.');
+      } finally {
+        setIsSaving(false);
+      }
+    }, [createNote, handleDismiss, htmlContent, isSaving, notebookId, plainText, resetEditor, selectedNoteColor]);
 
     return (
       <>
@@ -334,15 +377,19 @@ export const CreateNoteSheet = forwardRef<CreateNoteSheetHandle, CreateNoteSheet
               <View style={styles.footer}>
                 <Pressable
                   style={[styles.createButton, { backgroundColor: theme.accent }]}
-                  onPress={() => {
-                    // Create flow is intentionally static for now.
-                  }}
+                  onPress={handleCreateNote}
+                  disabled={isSaving}
                 >
                   <CreateNoteIcon color={theme.fabForeground} size={20} />
                   <ThemedText style={[styles.createButtonText, { color: theme.fabForeground }]}>
-                    Create Note
+                    {isSaving ? 'Creating...' : 'Create Note'}
                   </ThemedText>
                 </Pressable>
+                {submitError ? (
+                  <ThemedText themeColor="textSecondary" style={styles.errorText}>
+                    {submitError}
+                  </ThemedText>
+                ) : null}
               </View>
             </View>
           </BottomSheetView>
@@ -521,6 +568,10 @@ const styles = StyleSheet.create({
     fontSize: 17,
     lineHeight: 22,
     fontWeight: '600',
+  },
+  errorText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   pickerSheetContent: {
     paddingHorizontal: Spacing.three,

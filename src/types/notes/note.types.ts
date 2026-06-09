@@ -1,12 +1,26 @@
 import type { ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-export type NoteProps = {
+export type Note = {
+  id: string;
   title?: string;
   content: string;
-  createdAt: Date | string;
+  textColor?: string;
+  createdAt: string;
+  notebookId: string;
   notebookName?: string;
+};
+
+export type NoteProps = Pick<Note, 'title' | 'content' | 'createdAt' | 'notebookName'> & {
+  // UI-only style prop for Note component composition.
   style?: StyleProp<ViewStyle>;
+};
+
+export type CreateNoteInput = {
+  title?: string;
+  content: string;
+  textColor?: string;
+  notebookId: string;
 };
 
 export type NoteSurfaceProps = {

@@ -1,10 +1,7 @@
-export type NotebookRecord = {
+export type Notebook = {
   id: string;
   title: string;
   createdAt: string;
-};
-
-export type Notebook = NotebookRecord & {
   noteCount: number;
 };
 

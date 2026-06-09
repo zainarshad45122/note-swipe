@@ -1,6 +1,6 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-const CURRENT_SCHEMA_VERSION = 1;
+const CURRENT_SCHEMA_VERSION = 2;
 
 const MIGRATIONS: Record<number, string[]> = {
   1: [
@@ -9,6 +9,19 @@ const MIGRATIONS: Record<number, string[]> = {
       title TEXT NOT NULL,
       created_at TEXT NOT NULL
     );`,
+  ],
+  2: [
+    `CREATE TABLE IF NOT EXISTS notes (
+      id TEXT PRIMARY KEY NOT NULL,
+      title TEXT NOT NULL,
+      notebook_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (notebook_id) REFERENCES notebooks(id) ON DELETE CASCADE
+    );`,
+
+    `CREATE INDEX IF NOT EXISTS idx_notes_notebook_id ON notes(notebook_id);`,
   ],
 };
 
